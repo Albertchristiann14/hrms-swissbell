@@ -58,11 +58,9 @@ class Shift extends Model
 
     public static function getCachedActiveList()
     {
-        return \Illuminate\Support\Facades\Cache::remember('shifts_cached_active_list', 3600, function () {
-            return static::where('is_active', true)
-                ->select('id', 'name', 'code', 'start_time', 'end_time', 'color', 'is_overnight')
-                ->get();
-        });
+        return static::where('is_active', true)
+            ->select('id', 'name', 'code', 'start_time', 'end_time', 'color', 'is_overnight')
+            ->get();
     }
 
     public static function clearCache(): void

@@ -26,7 +26,12 @@ interface ShiftItem {
     attendances_count?: number;
 }
 
-export default function ShiftIndex({ shifts }: { shifts: ShiftItem[] }) {
+export default function ShiftIndex({ shifts: rawShifts }: { shifts: ShiftItem[] }) {
+    const shifts: ShiftItem[] = Array.isArray(rawShifts)
+        ? rawShifts
+        : (rawShifts && typeof rawShifts === 'object' && Array.isArray((rawShifts as any).data)
+            ? (rawShifts as any).data
+            : Object.values(rawShifts || {}).filter((s: any) => s && typeof s === 'object' && 'id' in s) as ShiftItem[]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
 

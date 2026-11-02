@@ -56,7 +56,13 @@ export default function AttendanceDataTab({
         ? departments 
         : (departments && typeof departments === 'object' && Array.isArray((departments as any).data) 
             ? (departments as any).data 
-            : Object.values(departments || {}));
+            : Object.values(departments || {}).filter((d: any) => d && typeof d === 'object' && 'id' in d));
+
+    const shiftList = Array.isArray(shifts)
+        ? shifts
+        : (shifts && typeof shifts === 'object' && Array.isArray((shifts as any).data)
+            ? (shifts as any).data
+            : Object.values(shifts || {}).filter((s: any) => s && typeof s === 'object' && 'id' in s));
 
     return (
         <div className="space-y-4">
@@ -104,9 +110,9 @@ export default function AttendanceDataTab({
                             className="text-xs rounded-xl border-slate-200 py-2 px-3 focus:ring-[#E31B23] focus:border-[#E31B23] text-slate-700 shadow-2xs"
                         >
                             <option value="">All Shifts</option>
-                            {shifts.map((s) => (
+                            {shiftList.map((s: any) => (
                                 <option key={s.id} value={s.id}>
-                                    {s.name} ({s.code || s.start_time.substring(0,5)})
+                                    {s.name} ({s.code || s.start_time?.substring(0,5)})
                                 </option>
                             ))}
                         </select>

@@ -49,11 +49,22 @@ export default function AttendanceIndex({
     summary,
     recentEvents = [],
     departmentStats = [],
-    departments = [],
-    shifts = [],
+    departments: rawDepartments = [],
+    shifts: rawShifts = [],
     employees = [],
     location,
 }: Props) {
+    const departments = Array.isArray(rawDepartments)
+        ? rawDepartments
+        : (rawDepartments && typeof rawDepartments === 'object' && Array.isArray((rawDepartments as any).data)
+            ? (rawDepartments as any).data
+            : Object.values(rawDepartments || {}).filter((d: any) => d && typeof d === 'object' && 'id' in d));
+
+    const shifts = Array.isArray(rawShifts)
+        ? rawShifts
+        : (rawShifts && typeof rawShifts === 'object' && Array.isArray((rawShifts as any).data)
+            ? (rawShifts as any).data
+            : Object.values(rawShifts || {}).filter((s: any) => s && typeof s === 'object' && 'id' in s));
     const [currentTab, setCurrentTab] = useState<'overview' | 'data' | 'reports' | 'settings'>(
         (filters?.tab as any) || activeTab || 'data'
     );

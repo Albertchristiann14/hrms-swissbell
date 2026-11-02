@@ -63,7 +63,7 @@ interface Props {
 export default function ScheduleIndex({
     schedules = [],
     employees = [],
-    shifts = [],
+    shifts: rawShifts = [],
     departments = [],
     selectedDepartmentId = null,
     startDate,
@@ -71,11 +71,17 @@ export default function ScheduleIndex({
 }: Props) {
     const { flash, errors: pageErrors } = usePage().props as any;
 
+    const shifts: Shift[] = Array.isArray(rawShifts)
+        ? rawShifts
+        : (rawShifts && typeof rawShifts === 'object' && Array.isArray((rawShifts as any).data)
+            ? (rawShifts as any).data
+            : Object.values(rawShifts || {}).filter((s: any) => s && typeof s === 'object' && 'id' in s) as Shift[]);
+
     const deptList = Array.isArray(departments) 
         ? departments 
         : (departments && typeof departments === 'object' && Array.isArray((departments as any).data) 
             ? (departments as any).data 
-            : Object.values(departments || {}));
+            : Object.values(departments || {}).filter((d: any) => d && typeof d === 'object' && 'id' in d));
 
     // Filter and search state
     const [searchQuery, setSearchQuery] = useState('');
