@@ -11,11 +11,16 @@ const appName = import.meta.env.VITE_APP_NAME || 'Swiss-Belinn SKA';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: async (name) => {
+        const mod: any = await resolvePageComponent(
             `./Pages/${name}.tsx`,
             import.meta.glob('./Pages/**/*.tsx'),
-        ),
+        );
+        if (mod && (typeof mod === 'function' || typeof mod.default === 'function')) {
+            return mod;
+        }
+        return import(/* @vite-ignore */ `./Pages/${name}.tsx?t=${Date.now()}`);
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 

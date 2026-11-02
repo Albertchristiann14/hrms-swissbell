@@ -10,6 +10,14 @@ export default defineConfig({
         }),
         react(),
     ],
+    server: {
+        watch: {
+            awaitWriteFinish: {
+                stabilityThreshold: 100,
+                pollInterval: 50,
+            },
+        },
+    },
     build: {
         rollupOptions: {
             output: {
