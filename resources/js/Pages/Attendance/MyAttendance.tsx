@@ -185,9 +185,20 @@ export default function MyAttendance({
         );
     }, [location.latitude, location.longitude]);
 
-    // Automatically request location when opening My Attendance page
+    // Request GPS once the attendance page is visible, not in a background tab.
     useEffect(() => {
-        requestLocation();
+        let hasRequested = false;
+        const requestWhenVisible = () => {
+            if (!hasRequested && document.visibilityState === 'visible') {
+                hasRequested = true;
+                requestLocation();
+            }
+        };
+
+        requestWhenVisible();
+        document.addEventListener('visibilitychange', requestWhenVisible);
+
+        return () => document.removeEventListener('visibilitychange', requestWhenVisible);
     }, [requestLocation]);
 
     // Validation helpers

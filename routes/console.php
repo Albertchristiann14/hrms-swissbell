@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('master-keys:check-expiring')->dailyAt('08:00');
 
+Schedule::command('tasks:remind-unacknowledged')->everyMinute()->withoutOverlapping(10);

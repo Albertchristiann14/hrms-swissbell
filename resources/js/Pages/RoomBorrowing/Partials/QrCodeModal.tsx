@@ -2,7 +2,7 @@ import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import PrimaryButton from '@/Components/PrimaryButton';
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface QrCodeModalProps {
     show: boolean;
@@ -12,11 +12,28 @@ interface QrCodeModalProps {
 
 export default function QrCodeModal({ show, onClose, qrUrl }: QrCodeModalProps) {
     const [copied, setCopied] = useState(false);
+    const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (!show) {
+            if (copyResetTimerRef.current !== null) clearTimeout(copyResetTimerRef.current);
+            copyResetTimerRef.current = null;
+            setCopied(false);
+        }
+        return () => {
+            if (copyResetTimerRef.current !== null) clearTimeout(copyResetTimerRef.current);
+            copyResetTimerRef.current = null;
+        };
+    }, [show]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(qrUrl);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
+        if (copyResetTimerRef.current !== null) clearTimeout(copyResetTimerRef.current);
+        copyResetTimerRef.current = setTimeout(() => {
+            copyResetTimerRef.current = null;
+            setCopied(false);
+        }, 2500);
     };
 
     const handlePrint = () => {

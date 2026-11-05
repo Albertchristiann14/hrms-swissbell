@@ -105,6 +105,11 @@ export default function TaskDetailModal({
     const [mentionIndex, setMentionIndex] = useState(0);
     const [showTagPicker, setShowTagPicker] = useState(false);
     const commentTextareaRef = React.useRef<HTMLTextAreaElement>(null);
+    const mentionFocusTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => () => {
+        if (mentionFocusTimerRef.current !== null) clearTimeout(mentionFocusTimerRef.current);
+    }, []);
 
     const mentionableUsers = React.useMemo(() => {
         const list: Array<{
@@ -219,9 +224,11 @@ export default function TaskDetailModal({
         setMentionQuery(null);
         setShowTagPicker(false);
 
-        setTimeout(() => {
+        if (mentionFocusTimerRef.current !== null) clearTimeout(mentionFocusTimerRef.current);
+        mentionFocusTimerRef.current = setTimeout(() => {
+            mentionFocusTimerRef.current = null;
             if (textarea) {
-                textarea.focus();
+                if (document.visibilityState === 'visible' && textarea.isConnected) textarea.focus();
             }
         }, 50);
     };

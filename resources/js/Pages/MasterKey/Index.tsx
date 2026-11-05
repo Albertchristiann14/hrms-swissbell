@@ -133,6 +133,18 @@ interface ExistingKeySummary {
     };
 }
 
+interface MasterKeyHistoryItem {
+    id: number;
+    request_number: string;
+    request_type: 'create_new' | 'extension' | 'replacement';
+    request_by?: string;
+    status: string;
+    requested_at: string | null;
+    valid_from: string | null;
+    valid_until: string | null;
+    previous_request_id?: number | null;
+}
+
 interface Props {
     requests: {
         data: MasterKeyRequestItem[];
@@ -141,6 +153,7 @@ interface Props {
         last_page: number;
         total: number;
     };
+    renewalHistories?: Record<string, MasterKeyHistoryItem[]>;
     filters: {
         tab: string;
         search: string;
@@ -176,6 +189,7 @@ interface Props {
 
 export default function MasterKeyIndex({
     requests,
+    renewalHistories = {},
     filters,
     stats,
     canApprove,
@@ -974,6 +988,16 @@ export default function MasterKeyIndex({
                                                 <div className="text-[11px] text-gray-500 mt-1 line-clamp-1" title={item.room_range_access}>
                                                     {item.room_range_access}
                                                 </div>
+                                                {(() => {
+                                                    const extensions = (renewalHistories[item.key_number] || []).filter(entry => entry.request_type === 'extension');
+                                                    return (
+                                                        <div className="text-[10px] text-slate-500 mt-1.5">
+                                                            {extensions.length > 0
+                                                                ? `Last extension requested: ${formatDateTime(extensions[0].requested_at ?? undefined)} (${extensions.length} total)`
+                                                                : 'No extension requests yet'}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
 
                                             {/* Remark / Alasan */}
@@ -1773,6 +1797,67 @@ export default function MasterKeyIndex({
                                     <div className="text-gray-600">Coverage: <span className="text-gray-900">{activeItem.room_range_access}</span></div>
                                     <div className="text-gray-600">Validity: <span className="text-gray-900">{formatDate(activeItem.valid_from)} to {formatDate(activeItem.valid_until)}</span></div>
                                 </div>
+                            </div>
+
+                            {/* History of all requests for this physical key, across pagination. */}
+                            <div className="border border-gray-200 rounded-xl p-4 bg-white">
+                                <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                        Master Key Request & Extension History
+                                    </span>
+                                    <span className="text-[11px] text-gray-500">
+                                        {(renewalHistories[activeItem.key_number] || []).length} requests recorded
+                                    </span>
+                                </div>
+                                {(() => {
+                                    const history = renewalHistories[activeItem.key_number] || [];
+                                    const lastExtension = history.find(entry => entry.request_type === 'extension');
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-xs">
+                                                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                                                    <div className="text-[10px] font-semibold text-slate-500 uppercase">Latest Request</div>
+                                                    <div className="font-semibold text-slate-900 mt-1">{history.length > 0 ? formatDateTime(history[0].requested_at ?? undefined) : '-'}</div>
+                                                </div>
+                                                <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
+                                                    <div className="text-[10px] font-semibold text-blue-600 uppercase">Latest Extension Request</div>
+                                                    <div className="font-semibold text-blue-900 mt-1">{lastExtension ? formatDateTime(lastExtension.requested_at ?? undefined) : 'Not extended yet'}</div>
+                                                </div>
+                                            </div>
+                                            {history.length > 0 ? (
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full min-w-[580px] text-left text-[11px]">
+                                                        <thead className="text-slate-500 uppercase text-[10px] border-b border-slate-200">
+                                                            <tr>
+                                                                <th className="py-2 pr-3">Request / Date</th>
+                                                                <th className="py-2 pr-3">Type</th>
+                                                                <th className="py-2 pr-3">Requested By</th>
+                                                                <th className="py-2 pr-3">Valid Until</th>
+                                                                <th className="py-2">Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100">
+                                                            {history.map(entry => (
+                                                                <tr key={entry.id} className={entry.id === activeItem.id ? 'bg-red-50/70' : ''}>
+                                                                    <td className="py-2 pr-3">
+                                                                        <div className="font-mono font-semibold text-slate-800">{entry.request_number}</div>
+                                                                        <div className="text-slate-500">{formatDateTime(entry.requested_at ?? undefined)}</div>
+                                                                    </td>
+                                                                    <td className="py-2 pr-3 capitalize">{entry.request_type.replace('_', ' ')}</td>
+                                                                    <td className="py-2 pr-3">{entry.request_by || '-'}</td>
+                                                                    <td className="py-2 pr-3 whitespace-nowrap">{formatDate(entry.valid_until ?? undefined)}</td>
+                                                                    <td className="py-2 font-semibold text-slate-700">{entry.status}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-slate-500">No earlier requests recorded for this key.</p>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
 
                             {/* Section 2: Remark / Alasan Permohonan */}
