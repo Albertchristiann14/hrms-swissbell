@@ -146,8 +146,8 @@ export default function PerformanceIndex({ periods = [], selectedPeriodId, score
         >
             <Head title="Employee Performance" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
 
                     {/* Flash Notifications */}
                     {flash?.success && (

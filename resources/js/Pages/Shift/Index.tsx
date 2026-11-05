@@ -117,8 +117,8 @@ export default function ShiftIndex({ shifts: rawShifts }: { shifts: ShiftItem[] 
         <AuthenticatedLayout header={<h2 className="font-bold text-xl text-slate-900 tracking-tight">Work Shift Settings</h2>}>
             <Head title="Work Shifts" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
                             <div>

@@ -652,7 +652,7 @@ export default function MasterKeyIndex({
         <AuthenticatedLayout>
             <Head title="Housekeeping Master Key Access - Swiss-Belinn" />
 
-            <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+            <div className="w-full space-y-4">
                 {/* Migration Warning if table is not yet migrated on server */}
                 {migrationNotice && (
                     <div className="p-4 sm:p-5 rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 shadow-md flex items-start gap-4">

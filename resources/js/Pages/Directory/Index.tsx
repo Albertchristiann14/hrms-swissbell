@@ -36,8 +36,8 @@ export default function DirectoryIndex({ employees = [], departments = [], filte
         >
             <Head title="Staff Directory" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     
                     {/* Filter & Search Bar */}
                     <div className="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">

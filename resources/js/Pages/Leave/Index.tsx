@@ -157,8 +157,8 @@ export default function LeaveIndex({
         >
             <Head title="Leave Requests - Swiss-Belinn" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     {/* Role Banner for Admin/Super Admin */}
                     {canApprove && (
                         <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm border border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

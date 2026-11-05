@@ -5,6 +5,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartmentTaskHistoryController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\DocumentController;
@@ -47,6 +48,12 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'approved'])->name('dashboard');
 
 Route::middleware(['auth', 'approved'])->group(function () {
+    Route::get('/dashboard/departments/tasks/history', [DepartmentTaskHistoryController::class, 'index'])
+        ->middleware('role:Super Admin|General Manager')
+        ->name('dashboard.departments.tasks.index');
+    Route::get('/dashboard/departments/{department}/tasks/history', [DepartmentTaskHistoryController::class, 'index'])
+        ->middleware('role:Super Admin|General Manager')
+        ->name('dashboard.departments.tasks.history');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

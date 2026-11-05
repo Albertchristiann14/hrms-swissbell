@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Models\Task;
+use App\Services\TaskAssignmentHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -13,17 +14,18 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $employee = $user->employee ?? $user->ensureEmployeeProfile();
 
         $query = Task::with([
-            'project:id,name,status', 
-            'assignees.user:id,name,email,profile_photo_path', 
-            'assignees.department:id,name', 
+            'project:id,name,status',
+            'assignees.user:id,name,email,profile_photo_path',
+            'assignees.department:id,name',
             'creator:id,name',
-            'comments.employee.user:id,name,profile_photo_path', 
-            'attachments.employee.user:id,name', 
-            'checklists', 
+            'comments.employee.user:id,name,profile_photo_path',
+            'attachments.employee.user:id,name',
+            'checklists',
             'activities.employee.user:id,name'
         ]);
 
@@ -73,17 +75,18 @@ class TaskController extends Controller
 
     public function kanban()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $employee = $user->employee ?? $user->ensureEmployeeProfile();
 
         $query = Task::with([
-            'project:id,name,status', 
-            'assignees.user:id,name,email,profile_photo_path', 
-            'assignees.department:id,name', 
-            'creator:id,name', 
-            'comments.employee.user:id,name,profile_photo_path', 
-            'attachments.employee.user:id,name', 
-            'checklists', 
+            'project:id,name,status',
+            'assignees.user:id,name,email,profile_photo_path',
+            'assignees.department:id,name',
+            'creator:id,name',
+            'comments.employee.user:id,name,profile_photo_path',
+            'attachments.employee.user:id,name',
+            'checklists',
             'activities.employee.user:id,name'
         ]);
 
@@ -116,17 +119,18 @@ class TaskController extends Controller
 
     public function calendar(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $employee = $user->employee ?? $user->ensureEmployeeProfile();
 
         $query = Task::with([
-            'project:id,name,status', 
-            'assignees.user:id,name,email,profile_photo_path', 
-            'assignees.department:id,name', 
-            'creator:id,name', 
-            'comments.employee.user:id,name,profile_photo_path', 
-            'attachments.employee.user:id,name', 
-            'checklists', 
+            'project:id,name,status',
+            'assignees.user:id,name,email,profile_photo_path',
+            'assignees.department:id,name',
+            'creator:id,name',
+            'comments.employee.user:id,name,profile_photo_path',
+            'attachments.employee.user:id,name',
+            'checklists',
             'activities.employee.user:id,name'
         ]);
 
@@ -208,7 +212,7 @@ class TaskController extends Controller
         return redirect()->route('tasks.index', ['task_id' => $task->id, 'edit' => 1]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, TaskAssignmentHistoryService $assignmentHistory)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -228,7 +232,7 @@ class TaskController extends Controller
         $task = Task::create(collect($validated)->except('assignees')->toArray());
 
         if (! empty($validated['assignees'])) {
-            $task->assignees()->sync($validated['assignees']);
+            $assignmentHistory->sync($task, $validated['assignees'], Auth::id());
 
             // Notify assigned users
             $users = \App\Models\Employee::whereIn('id', $validated['assignees'])
@@ -236,21 +240,22 @@ class TaskController extends Controller
                 ->get()
                 ->pluck('user')
                 ->filter();
-            
+
             \Illuminate\Support\Facades\Notification::send($users, new \App\Notifications\TaskAssigned($task));
         }
 
         return back()->with('success', 'Task created successfully.');
     }
 
-    public function update(Request $request, Task $task)
+    public function update(Request $request, Task $task, TaskAssignmentHistoryService $assignmentHistory)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
-        $isCreator = $task->created_by === $user->id 
+        $isCreator = $task->created_by === $user->id
             || ($task->project && $task->project->created_by === $user->id)
             || ($task->project && $task->project->owner_id && $user->employee && $task->project->owner_id === $user->employee->id)
             || $user->hasAnyRole(['Super Admin', 'HRD / Admin', 'General Manager']);
-        
+
         $isAssignee = $user->employee && $task->assignees()->where('employee_id', $user->employee->id)->exists();
 
         // Normalize status alias if passed (e.g. 'Approve' -> 'Approved')
@@ -323,13 +328,13 @@ class TaskController extends Controller
         }
 
         if ($request->has('assignees')) {
-            $changes = $task->assignees()->sync($validated['assignees'] ?? []);
+            $changes = $assignmentHistory->sync($task, $validated['assignees'] ?? [], Auth::id());
 
             if (!empty($changes['attached'])) {
                 $newEmployees = \App\Models\Employee::whereIn('id', $changes['attached'])
                     ->with('user')
                     ->get();
-                
+
                 $names = $newEmployees->map(fn($e) => $e->user?->name ?? $e->employee_number)->implode(', ');
                 $task->activities()->create([
                     'employee_id' => Auth::user()?->employee?->id,
@@ -361,8 +366,9 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
-        $isCreator = $task->created_by === $user->id 
+        $isCreator = $task->created_by === $user->id
             || ($task->project && $task->project->created_by === $user->id)
             || ($task->project && $task->project->owner_id && $user->employee && $task->project->owner_id === $user->employee->id)
             || $user->hasRole('Super Admin');
@@ -376,22 +382,20 @@ class TaskController extends Controller
         return back()->with('success', 'Task deleted successfully.');
     }
 
-    public function acknowledge(Task $task)
+    public function acknowledge(Task $task, TaskAssignmentHistoryService $assignmentHistory)
     {
         $employee = Auth::user()->employee;
         if (! $employee) {
             return back()->with('error', 'Only employees can acknowledge tasks.');
         }
 
-        $task->assignees()->updateExistingPivot($employee->id, [
-            'acknowledged_at' => now(),
-        ]);
+        if (! $task->assignees()->where('employee_id', $employee->id)->exists()) {
+            abort(403, 'You are not assigned to this task.');
+        }
 
-        $task->activities()->create([
-            'employee_id' => $employee->id,
-            'action' => 'task_acknowledged',
-            'description' => "Acknowledged and accepted the task assignment",
-        ]);
+        if (! $assignmentHistory->acknowledge($task, $employee)) {
+            return back()->with('info', 'Task already acknowledged.');
+        }
 
         return back()->with('success', 'Task acknowledged successfully.');
     }

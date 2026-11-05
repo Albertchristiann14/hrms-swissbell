@@ -1,1 +1,0 @@
-import{a as e}from"./vendor-react-JxWQaBUa.js";var t=e();function n(e){return(0,t.jsx)(`img`,{...e,src:`/logo/logoswissbell.jpg`,alt:`Swiss-Belinn SKA Pekanbaru Logo`})}export{n as t};

@@ -92,10 +92,10 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
         >
             <Head title="List Task" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="w-full">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
-                        <div className="p-6 text-slate-900">
+                        <div className="p-4 sm:p-5 text-slate-900">
                             {/* Filter Tabs */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
                                 <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl border border-slate-200/60">

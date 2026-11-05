@@ -1,17 +1,34 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import SecondaryButton from '@/Components/SecondaryButton';
 
 export default function Payslip({ payroll }: any) {
     const earnings = payroll.items.filter((i: any) => i.type === 'Earnings');
     const deductions = payroll.items.filter((i: any) => i.type === 'Deduction');
+    const currentUrl = usePage().url;
+    const navigationSource = new URLSearchParams(currentUrl.split('?')[1] || '').get('source');
+    const fromWorkspace = navigationSource === 'my-workspace';
+    const fromHr = navigationSource === 'hr';
 
     return (
         <AuthenticatedLayout
             header={
-                <div className="flex justify-between items-center">
-                    <h2 className="font-semibold text-xl text-slate-800 leading-tight">Payslip: {payroll.period?.name}</h2>
+                <div className="flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        {(fromWorkspace || fromHr) && (
+                            <nav className="mb-1 flex items-center gap-2 text-xs font-medium text-slate-500" aria-label="Breadcrumb">
+                                <Link href={route('dashboard', { view: fromHr ? 'hr' : 'overview' })} className="hover:text-[#E31B23]">
+                                    {fromHr ? 'Human Resources' : 'My Workspace'}
+                                </Link>
+                                <span className="text-slate-300">/</span>
+                                <Link href={fromHr ? route('payroll.my', { source: 'hr' }) : route('payroll.my')} className="hover:text-[#E31B23]">My Payslips</Link>
+                                <span className="text-slate-300">/</span>
+                                <span className="text-slate-800">Details</span>
+                            </nav>
+                        )}
+                        <h2 className="font-semibold text-xl text-slate-800 leading-tight">Payslip: {payroll.period?.name}</h2>
+                    </div>
                     <SecondaryButton 
                         onClick={() => window.print()}
                     >
@@ -22,7 +39,7 @@ export default function Payslip({ payroll }: any) {
         >
             <Head title="Payslip" />
 
-            <div className="py-8">
+            <div className="py-2">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200 p-8 print:shadow-none print:p-0 print:border-none">
                         

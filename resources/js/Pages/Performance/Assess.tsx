@@ -60,8 +60,8 @@ export default function PerformanceAssess({ employee, period, assessment }: any)
         >
             <Head title="Supervisor Assessment" />
 
-            <div className="py-8">
-                <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="max-w-3xl mx-auto">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
                         <div className="p-6 bg-white">
                             

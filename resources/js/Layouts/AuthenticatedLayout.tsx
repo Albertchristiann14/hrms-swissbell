@@ -2,7 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage, router } from '@inertiajs/react';
-import { PropsWithChildren, ReactNode, useState, useEffect, useMemo } from 'react';
+import { PropsWithChildren, ReactNode, createContext, useCallback, useContext, useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import GlobalSearchModal from '@/Components/GlobalSearchModal';
 
 const icons: Record<string, JSX.Element> = {
@@ -12,6 +12,7 @@ const icons: Record<string, JSX.Element> = {
     'HR Dashboard': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
     'Dashboard HR': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
     'Task Summary': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
+    'Dept. Tasks': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 21h18M5 21V7a2 2 0 012-2h4a2 2 0 012 2v14M13 11h4a2 2 0 012 2v8M7 9h2m-2 4h2m-2 4h2m8-2h2" /></svg>,
     'Ringkasan Tugas': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
     'Personal Dashboard': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
     'Dashboard Pribadi': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
@@ -99,7 +100,47 @@ interface ModuleInfo {
     }[];
 }
 
+type ChromeOptions = { header?: ReactNode; hideSidebar: boolean };
+const PersistentChromeContext = createContext<((options: ChromeOptions) => void) | null>(null);
+
+// This component is installed once by Inertia, outside the changing page.
+// It keeps the sidebar, topbar and their state alive across page visits.
+export function PersistentAuthenticatedLayout({ children }: PropsWithChildren) {
+    const [chrome, setChrome] = useState<ChromeOptions>({ hideSidebar: false });
+    const updateChrome = useCallback((next: ChromeOptions) => {
+        setChrome(prev => prev.header === next.header && prev.hideSidebar === next.hideSidebar ? prev : next);
+    }, []);
+
+    return (
+        <PersistentChromeContext.Provider value={updateChrome}>
+            <AuthenticatedShell header={chrome.header} hideSidebar={chrome.hideSidebar}>
+                {children}
+            </AuthenticatedShell>
+        </PersistentChromeContext.Provider>
+    );
+}
+
+// Existing pages may continue to pass their own header and hideSidebar props.
+// When inside the persistent shell, this lightweight bridge only renders the
+// page content and lets the shell update its chrome without replacing it.
 export default function Authenticated({
+    header,
+    children,
+    hideSidebar = false,
+}: PropsWithChildren<{ header?: ReactNode; user?: any; hideSidebar?: boolean }>) {
+    const updateChrome = useContext(PersistentChromeContext);
+
+    useLayoutEffect(() => {
+        updateChrome?.({ header, hideSidebar });
+    }, [updateChrome, header, hideSidebar]);
+
+    if (updateChrome) return <>{children}</>;
+
+    // Safe fallback for pages rendered outside the standard Inertia shell.
+    return <AuthenticatedShell header={header} hideSidebar={hideSidebar}>{children}</AuthenticatedShell>;
+}
+
+function AuthenticatedShell({
     user: _ignoredUser,
     header,
     children,
@@ -132,18 +173,43 @@ export default function Authenticated({
         });
     };
 
-    // Collapsible navigation sections state
-    const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+    // Keep each module's navigation preferences when Inertia swaps page components.
+    // The layout currently lives inside each page, so it can remount on visits.
+    const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
+        try {
+            return JSON.parse(sessionStorage.getItem('sipu_nav_collapsed_sections') || '{}');
+        } catch {
+            return {};
+        }
+    });
     const toggleSection = (title: string) => {
-        setCollapsedSections(prev => ({ ...prev, [title]: !prev[title] }));
+        const sectionKey = `${activeModuleInfo.key}:${title}`;
+        setCollapsedSections(prev => {
+            const next = { ...prev, [sectionKey]: !prev[sectionKey] };
+            try {
+                sessionStorage.setItem('sipu_nav_collapsed_sections', JSON.stringify(next));
+            } catch {
+                // Storage may be disabled; the menu remains usable in this visit.
+            }
+            return next;
+        });
     };
 
     // Auto-expand section containing active item on page navigation
     useEffect(() => {
         try {
             const activeSection = activeModuleInfo?.sections?.find(s => s?.items?.some((item: any) => isItemActive(item)));
-            if (activeSection && collapsedSections[activeSection.title]) {
-                setCollapsedSections(prev => ({ ...prev, [activeSection.title]: false }));
+            const sectionKey = activeSection ? `${activeModuleInfo.key}:${activeSection.title}` : null;
+            if (sectionKey && collapsedSections[sectionKey]) {
+                setCollapsedSections(prev => {
+                    const next = { ...prev, [sectionKey]: false };
+                    try {
+                        sessionStorage.setItem('sipu_nav_collapsed_sections', JSON.stringify(next));
+                    } catch {
+                        // Optional persistence only.
+                    }
+                    return next;
+                });
             }
         } catch {
             // ignore layout expansion errors
@@ -188,6 +254,7 @@ export default function Authenticated({
     const isSuperAdmin = user.roles?.some((r: any) => r.name === 'Super Admin');
     const isHRD = user.roles?.some((r: any) => r.name === 'HRD / Admin');
     const isManager = user.roles?.some((r: any) => r.name === 'General Manager');
+    const canTrackDepartmentTasks = Boolean(pageProps?.auth?.canViewDepartmentTasks || isManager || isSuperAdmin);
     const isSupervisor = user.roles?.some((r: any) => ['Supervisor', 'Head of Department'].includes(r.name));
     // Hak akses level manajemen / HRD (Super Admin, HRD / Admin, General Manager)
     const isAdmin = isSuperAdmin || isHRD || isManager;
@@ -196,11 +263,20 @@ export default function Authenticated({
     const canViewPerformance = isAdmin;
     const canViewProjects = isAdmin || isSupervisor;
 
+    // Attendance and payslips are shared personal pages. Preserve the module
+    // they were opened from in the URL so HR links stay in HR, while links from
+    // My Workspace (or direct visits) stay in My Workspace.
+    const navigationSource = new URLSearchParams(currentUrl.split('?')[1] || '').get('source');
+    const isPersonalWorkspacePage = (
+        (route().current('attendance.my') || route().current('payroll.my')) && navigationSource !== 'hr'
+    ) || (route().current('payroll.show') && navigationSource === 'my-workspace');
+
     // Detect active module and provide strictly contextual menus
     const activeModuleInfo = useMemo<ModuleInfo>(() => {
         // A. Task Management
         if (
             currentUrl.includes('view=tasks') ||
+            route().current('dashboard.departments.tasks.*') ||
             route().current('tasks.*') ||
             route().current('projects.*')
         ) {
@@ -216,6 +292,7 @@ export default function Authenticated({
                         title: 'Task Management',
                         items: [
                             { name: 'Task Summary', route: 'dashboard', params: { view: 'tasks' }, pattern: 'dashboard' },
+                            canTrackDepartmentTasks ? { name: 'Dept. Tasks', route: 'dashboard.departments.tasks.index', pattern: 'dashboard.departments.tasks.*' } : null,
                             { name: 'My List', route: 'tasks.kanban', pattern: 'tasks.kanban' },
                             { name: 'List Task', route: 'tasks.index', pattern: 'tasks.index' },
                             { name: 'Calendar', route: 'tasks.calendar', pattern: 'tasks.calendar' },
@@ -265,7 +342,7 @@ export default function Authenticated({
         }
 
         // C. Human Resources
-        if (
+        if ((
             currentUrl.includes('view=hr') ||
             route().current('employees.*') ||
             route().current('departments.*') ||
@@ -285,7 +362,7 @@ export default function Authenticated({
             currentUrl.includes('/payroll') ||
             currentUrl.includes('/directory') ||
             currentUrl.includes('/performance')
-        ) {
+        ) && !isPersonalWorkspacePage) {
             return {
                 key: 'hr',
                 title: 'Human Resources',
@@ -313,7 +390,7 @@ export default function Authenticated({
                         items: [
                             isAdmin ? { name: 'Overview', route: 'attendance.index', params: { tab: 'overview' }, pattern: 'attendance.index' } : null,
                             isAdmin ? { name: 'Attendance Data', route: 'attendance.index', params: { tab: 'data' }, pattern: 'attendance.index' } : null,
-                            { name: 'My Attendance', route: 'attendance.my', pattern: 'attendance.my' },
+                            { name: 'My Attendance', route: 'attendance.my', params: { source: 'hr' }, pattern: 'attendance.my' },
                             isAdmin ? { name: 'Shift Roster (Scheduler)', route: 'schedules.index', pattern: 'schedules.*' } : null,
                             isAdmin ? { name: 'Shift Management', route: 'shifts.index', pattern: 'shifts.*' } : null,
                             isAdmin ? { name: 'Attendance Reports', route: 'attendance.index', params: { tab: 'reports' }, pattern: 'attendance.index' } : null,
@@ -330,7 +407,7 @@ export default function Authenticated({
                     {
                         title: 'Compensation & Payroll',
                         items: [
-                            { name: 'My Payslips', route: 'payroll.my', pattern: 'payroll.my' },
+                            { name: 'My Payslips', route: 'payroll.my', params: { source: 'hr' }, pattern: 'payroll.my' },
                             isAdmin ? { name: 'Payroll Management', route: 'payroll.index', pattern: 'payroll.index' } : null,
                         ].filter(Boolean) as any[],
                     },
@@ -451,6 +528,7 @@ export default function Authenticated({
 
         // H. Personal Dashboard (My Workspace)
         if (
+            isPersonalWorkspacePage ||
             currentUrl.includes('view=overview') ||
             route().current('profile.*') ||
             currentUrl.includes('/profile')
@@ -493,7 +571,35 @@ export default function Authenticated({
                 },
             ],
         };
-    }, [currentUrl, isAdmin, isManager, isSupervisor, canViewPerformance, canViewProjects, isItStaff, canAccessMasterKey, isSuperAdmin]);
+    }, [currentUrl, isAdmin, isManager, isSupervisor, canViewPerformance, canViewProjects, isItStaff, canAccessMasterKey, isSuperAdmin, canTrackDepartmentTasks]);
+
+    const desktopMenuRef = useRef<HTMLDivElement>(null);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+    // Inertia already performs SPA navigation, but a page-owned layout remount
+    // used to throw the sidebar back to the top. Restore before browser paint.
+    useLayoutEffect(() => {
+        const restore = (element: HTMLDivElement | null, kind: 'desktop' | 'mobile') => {
+            if (!element) return;
+            try {
+                const stored = sessionStorage.getItem(`sipu_nav_scroll_${kind}_${activeModuleInfo.key}`);
+                element.scrollTop = stored ? Math.max(0, Number(stored) || 0) : 0;
+            } catch {
+                // Use the native scroll position if session storage is unavailable.
+            }
+        };
+
+        restore(desktopMenuRef.current, 'desktop');
+        restore(mobileMenuRef.current, 'mobile');
+    }, [activeModuleInfo.key, hideSidebar]);
+
+    const rememberMenuScroll = (element: HTMLDivElement, kind: 'desktop' | 'mobile') => {
+        try {
+            sessionStorage.setItem(`sipu_nav_scroll_${kind}_${activeModuleInfo.key}`, String(element.scrollTop));
+        } catch {
+            // Scroll still works without persistence.
+        }
+    };
 
     const getItemHref = (item: any): string => {
         return (item.params ? route(item.route, item.params) : route(item.route)) as unknown as string;
@@ -502,6 +608,11 @@ export default function Authenticated({
     const isItemActive = (item: any) => {
         if (!item) return false;
         try {
+            if (item.route === 'payroll.my' && route().current('payroll.show')) {
+                return item.params?.source === 'hr'
+                    ? navigationSource === 'hr'
+                    : navigationSource === 'my-workspace';
+            }
             if (item.params?.view) {
                 return Boolean(route().current(item.pattern) && currentUrl.includes(`view=${item.params.view}`));
             }
@@ -600,9 +711,13 @@ export default function Authenticated({
                         </div>
 
                         {/* Module Navigation (Only active module menus) */}
-                        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+                        <div
+                            ref={desktopMenuRef}
+                            onScroll={(event) => rememberMenuScroll(event.currentTarget, 'desktop')}
+                            className="flex-1 overflow-y-auto px-3 py-3 space-y-4"
+                        >
                             {activeModuleInfo.sections.map((section, idx) => {
-                                const isCollapsed = !!collapsedSections[section.title];
+                                const isCollapsed = !!collapsedSections[`${activeModuleInfo.key}:${section.title}`];
 
                                 return (
                                     <div key={idx} className="transition-all duration-200">
@@ -970,7 +1085,11 @@ export default function Authenticated({
 
                     {/* Mobile Navigation Menu */}
                     <div className={`${showingNavigationDropdown ? 'block' : 'hidden'} md:hidden border-t border-slate-200 bg-white`}>
-                        <div className="space-y-1 pt-2 pb-3 px-2 max-h-[70vh] overflow-y-auto">
+                        <div
+                            ref={mobileMenuRef}
+                            onScroll={(event) => rememberMenuScroll(event.currentTarget, 'mobile')}
+                            className="space-y-1 pt-2 pb-3 px-2 max-h-[70vh] overflow-y-auto"
+                        >
                             {/* Return to Desk Launcher on mobile */}
                             <div className="mb-2">
                                 <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard') && !currentUrl.includes('view=')}>
@@ -988,7 +1107,7 @@ export default function Authenticated({
                             </div>
 
                             {activeModuleInfo.sections.map((section, idx) => {
-                                const isCollapsed = !!collapsedSections[section.title];
+                                const isCollapsed = !!collapsedSections[`${activeModuleInfo.key}:${section.title}`];
 
                                 return (
                                     <div key={idx} className="mb-3">
@@ -1058,21 +1177,21 @@ export default function Authenticated({
 
                 {/* Dedicated Page Header Banner for all normal pages (!hideSidebar) */}
                 {header && !hideSidebar && (
-                    <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 py-4 px-4 sm:px-6 lg:px-8 shadow-2xs transition-all">
-                        <div className={isSidebarOpen ? 'max-w-7xl mx-auto w-full' : 'w-full max-w-[1650px] mx-auto'}>
+                    <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 py-3 px-3 sm:px-4 lg:px-6 shadow-2xs transition-all">
+                        <div className={isSidebarOpen ? 'w-full max-w-[1600px] mx-auto' : 'w-full max-w-[1650px] mx-auto'}>
                             {header}
                         </div>
                     </div>
                 )}
 
                 {/* Page Content */}
-                <main className={`flex-1 flex flex-col overflow-y-auto transition-all duration-300 ${hideSidebar ? 'p-4 sm:p-6 lg:p-10' : 'p-4 sm:p-6 lg:p-8'}`}>
-                    <div className={`flex-1 ${hideSidebar ? 'max-w-6xl mx-auto w-full' : isSidebarOpen ? 'max-w-7xl mx-auto w-full' : 'w-full max-w-[1650px] mx-auto'}`}>
+                <main className={`flex-1 flex flex-col overflow-y-auto transition-all duration-300 ${hideSidebar ? 'p-4 sm:p-6 lg:p-10' : 'p-3 sm:p-4 lg:p-5'}`}>
+                    <div className={`flex-1 ${hideSidebar ? 'max-w-6xl mx-auto w-full' : isSidebarOpen ? 'w-full max-w-[1600px] mx-auto' : 'w-full max-w-[1650px] mx-auto'}`}>
                         {children}
                     </div>
 
                     {/* Global Page Footer */}
-                    <footer className={`mt-12 pt-6 pb-2 border-t border-slate-200/70 text-xs text-slate-500 ${hideSidebar ? 'max-w-6xl mx-auto w-full' : isSidebarOpen ? 'max-w-7xl mx-auto w-full' : 'w-full max-w-[1650px] mx-auto'}`}>
+                    <footer className={`mt-8 pt-4 pb-2 border-t border-slate-200/70 text-xs text-slate-500 ${hideSidebar ? 'max-w-6xl mx-auto w-full' : isSidebarOpen ? 'w-full max-w-[1600px] mx-auto' : 'w-full max-w-[1650px] mx-auto'}`}>
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1 text-slate-500">
                                 <span>&copy; {new Date().getFullYear()} <strong className="text-slate-700 font-semibold">Swiss-Belinn SKA Pekanbaru</strong>.</span>

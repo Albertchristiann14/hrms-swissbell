@@ -62,8 +62,8 @@ export default function DocumentIndex({ documents, auth, flash }: any) {
         >
             <Head title="Documents Management" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     
                     {flash?.success && (
                         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xs">

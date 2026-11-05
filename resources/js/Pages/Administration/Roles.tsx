@@ -12,8 +12,8 @@ export default function Roles({ auth, roles }: PageProps<{ roles: any[] }>) {
         >
             <Head title="Roles & Permissions" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="w-full">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
                         <div className="p-6 text-slate-900">
                             <p className="text-sm text-slate-500 mb-6">
