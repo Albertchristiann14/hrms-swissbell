@@ -11,8 +11,24 @@ class AnnouncementController extends Controller
 {
     public function index()
     {
+        // Announcements addressed to HOD/Supervisors must not be disclosed to
+        // regular employees. The frontend filters only the records received here.
+        /** @var \App\Models\User $viewer */
+        $viewer = Auth::user();
+        $canViewRestrictedAnnouncements = $viewer->hasAnyRole([
+            'Super Admin',
+            'HRD / Admin',
+            'General Manager',
+            'Head of Department',
+            'Supervisor',
+        ]);
+
         $announcements = Announcement::with('creator')
-            ->orderBy('created_at', 'desc')
+            ->when(! $canViewRestrictedAnnouncements, function ($query) {
+                $query->where('target_audience', 'All');
+            })
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
             ->get();
 
         return Inertia::render('Announcement/Index', [

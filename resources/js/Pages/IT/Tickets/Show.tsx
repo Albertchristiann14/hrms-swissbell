@@ -251,7 +251,7 @@ export default function TicketShow({ ticket, isItManager, itStaffUsers, flash }:
         >
             <Head title={`${ticket.ticket_number} - ${ticket.title} - IT Helpdesk`} />
 
-            <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+            <div className="w-full space-y-4">
                 {/* Flash Messages */}
                 {flash?.success && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium flex items-center gap-2 shadow-2xs">

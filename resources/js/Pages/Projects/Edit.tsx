@@ -71,8 +71,8 @@ export default function Edit({
         >
             <Head title={`Edit Project - ${project.name}`} />
 
-            <div className="py-8">
-                <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="max-w-3xl mx-auto">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200 p-6 sm:p-8">
                         <form onSubmit={submit} className="space-y-6">
                             <div>

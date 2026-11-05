@@ -11,8 +11,8 @@ export default function Settings({ auth }: PageProps) {
         >
             <Head title="Settings" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="w-full">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
                         <div className="p-6 text-slate-900 space-y-8">
                             {/* Application Info */}

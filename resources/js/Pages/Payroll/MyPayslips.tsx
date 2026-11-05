@@ -1,17 +1,30 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import Badge from '@/Components/Badge';
 
 export default function MyPayslips({ payrolls }: any) {
+    const openedFromHr = new URLSearchParams(usePage().url.split('?')[1] || '').get('source') === 'hr';
+
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-slate-800 leading-tight">My Payslips</h2>}
+            header={
+                <div>
+                    <nav className="mb-1 flex items-center gap-2 text-xs font-medium text-slate-500" aria-label="Breadcrumb">
+                        <Link href={route('dashboard', { view: openedFromHr ? 'hr' : 'overview' })} className="hover:text-[#E31B23]">
+                            {openedFromHr ? 'Human Resources' : 'My Workspace'}
+                        </Link>
+                        <span className="text-slate-300">/</span>
+                        <span className="text-slate-800">My Payslips</span>
+                    </nav>
+                    <h2 className="font-bold text-xl text-slate-900 leading-tight">My Payslips</h2>
+                </div>
+            }
         >
             <Head title="My Payslips" />
 
-            <div className="py-8">
-                <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="max-w-5xl mx-auto">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200 p-6">
                         
                         {payrolls && payrolls.length > 0 ? (
@@ -35,7 +48,7 @@ export default function MyPayslips({ payrolls }: any) {
                                         </div>
                                         <div className="p-4 bg-slate-50/70 border-t border-slate-100 text-center">
                                             <Link 
-                                                href={route('payroll.show', pr.id)} 
+                                                href={route('payroll.show', { id: pr.id, source: openedFromHr ? 'hr' : 'my-workspace' })}
                                                 className="text-[#E31B23] hover:text-[#c4141b] font-semibold text-sm inline-flex items-center gap-1 group"
                                             >
                                                 <span>View Details</span>

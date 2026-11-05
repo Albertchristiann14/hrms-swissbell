@@ -326,8 +326,8 @@ export default function Show({
         >
             <Head title={`Project - ${project.name}`} />
 
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     {/* Archived Notice Banner */}
                     {project.status === 'Archived' && (
                         <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between gap-3 text-purple-900 shadow-sm">

@@ -50,18 +50,17 @@ export default function UpdatePasswordForm({
 
     return (
         <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
-                </p>
+            <header className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M8 10V7a4 4 0 018 0v3m-4 4v3" /></svg>
+                </span>
+                <div>
+                    <h2 className="text-base font-bold text-slate-900">Account Security</h2>
+                    <p className="mt-0.5 text-sm text-slate-500">Change your password to keep your account safe.</p>
+                </div>
             </header>
 
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
+            <form onSubmit={updatePassword} className="mt-5 space-y-4">
                 <div>
                     <InputLabel
                         htmlFor="current_password"
@@ -125,8 +124,8 @@ export default function UpdatePasswordForm({
                     />
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                <div className="flex flex-wrap items-center gap-4 border-t border-slate-100 pt-4">
+                    <PrimaryButton disabled={processing}>Update Password</PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -135,9 +134,7 @@ export default function UpdatePasswordForm({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
-                            Saved.
-                        </p>
+                        <p className="text-sm font-semibold text-emerald-700">Password updated successfully.</p>
                     </Transition>
                 </div>
             </form>

@@ -1,1 +1,0 @@
-import"./rolldown-runtime-hePW80VL.js";import{a as e}from"./vendor-react-JxWQaBUa.js";import{p as t}from"./vendor-charts-CyPRMOav.js";import n from"./Index-DFxi_0hG.js";t();var r=e();function i(e){return(0,r.jsx)(n,{...e,canApprove:!0,allRequests:e.allRequests||e.overtimeRequests||[],overtimeRequests:e.overtimeRequests||[],activeTab:`approvals`})}export{i as default};

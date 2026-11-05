@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[ObservedBy([TaskObserver::class])]
 class Task extends Model
@@ -69,6 +70,11 @@ class Task extends Model
             ->withTimestamps();
     }
 
+    public function assignmentHistories(): HasMany
+    {
+        return $this->hasMany(TaskAssignmentHistory::class);
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(TaskComment::class);
@@ -87,5 +93,10 @@ class Task extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(TaskActivity::class)->latest();
+    }
+
+    public function latestActivity(): HasOne
+    {
+        return $this->hasOne(TaskActivity::class)->latestOfMany();
     }
 }

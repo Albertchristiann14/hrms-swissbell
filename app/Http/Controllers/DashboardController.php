@@ -21,6 +21,7 @@ use App\Models\WorkSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
@@ -304,29 +305,30 @@ class DashboardController extends Controller
             ->count();
         $attendanceRate = $totalPossible > 0 ? round(($totalPresent / $totalPossible) * 100, 1) : 0;
 
+        // Group by department at assignment time, not by the employee's current department.
+        // DISTINCT task_id prevents double counting two recipients from the same department.
+        $departmentCounts = DB::table('task_assignment_histories as history')
+            ->join('tasks', 'tasks.id', '=', 'history.task_id')
+            ->whereNotNull('history.department_id')
+            ->selectRaw("history.department_id,
+                COUNT(DISTINCT CASE WHEN tasks.status NOT IN ('Approved', 'Cancelled') THEN tasks.id END) as active_count,
+                COUNT(DISTINCT CASE WHEN tasks.status = 'Approved' THEN tasks.id END) as approved_count")
+            ->groupBy('history.department_id')
+            ->get()
+            ->keyBy('department_id');
+
         $departmentPerformance = Department::withCount('employees')
-            ->with(['employees' => function ($q) {
-                $q->select('id', 'department_id')
-                  ->withCount([
-                    'tasks as active_tasks_count' => function ($query) {
-                        $query->where('status', '!=', 'Done');
-                    },
-                    'tasks as completed_tasks_count' => function ($query) {
-                        $query->where('status', 'Done');
-                    },
-                ]);
-            }])
             ->get(['id', 'name'])
-            ->map(function ($dept) {
-                $dept->total_active_tasks = $dept->employees->sum('active_tasks_count');
-                $dept->total_completed_tasks = $dept->employees->sum('completed_tasks_count');
-                unset($dept->employees);
+            ->map(function ($dept) use ($departmentCounts) {
+                $counts = $departmentCounts->get($dept->id);
+                $dept->total_active_tasks = (int) ($counts?->active_count ?? 0);
+                $dept->total_completed_tasks = (int) ($counts?->approved_count ?? 0);
                 return $dept;
             });
 
         $projectProgress = Project::where('status', 'Active')
             ->withCount(['tasks as total_tasks', 'tasks as completed_tasks' => function ($query) {
-                $query->where('status', 'Done');
+                $query->where('status', 'Approved');
             }])->get(['id', 'name', 'status'])->map(function ($project) {
                 $project->progress = $project->total_tasks > 0 ? round(($project->completed_tasks / $project->total_tasks) * 100) : 0;
                 return $project;
@@ -334,9 +336,13 @@ class DashboardController extends Controller
 
         return [
             'activeProjects' => Project::where('status', 'Active')->count(),
-            'activeTasks' => Task::where('status', '!=', 'Done')->count(),
-            'completedThisMonth' => Task::where('status', 'Done')->whereMonth('updated_at', now()->month)->count(),
-            'overdueTasks' => Task::where('deadline', '<', now())->where('status', '!=', 'Done')->count(),
+            'activeTasks' => Task::whereNotIn('status', ['Approved', 'Cancelled'])->count(),
+            'completedThisMonth' => Task::where('status', 'Approved')
+                ->whereHas('activities', fn ($query) => $query->where('action', 'task_approved')
+                    ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]))
+                ->count(),
+            'overdueTasks' => Task::whereDate('deadline', '<', today())
+                ->whereNotIn('status', ['Approved', 'Cancelled'])->count(),
             'projectProgress' => $projectProgress,
             'taskStatusDistribution' => Task::selectRaw('status, count(*) as count')->groupBy('status')->get(),
             'attendanceRate' => $attendanceRate,

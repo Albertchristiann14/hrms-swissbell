@@ -15,6 +15,18 @@ interface TaskDetailModalProps {
     statuses?: any[];
     priorities?: any[];
     initialTab?: 'details' | 'checklists' | 'comments' | 'activity';
+    readOnly?: boolean;
+    assignmentHistory?: Array<{
+        id: number;
+        employee_name: string;
+        employee_number: string | null;
+        department_name: string | null;
+        assigned_by: string | null;
+        assigned_at: string;
+        acknowledged_at: string | null;
+        unassigned_at: string | null;
+        source: string;
+    }>;
 }
 
 const formatDate = (d: any) => {
@@ -32,13 +44,15 @@ export default function TaskDetailModal({
     statuses = [],
     priorities = [],
     initialTab,
+    readOnly = false,
+    assignmentHistory,
 }: TaskDetailModalProps) {
     const urlTab = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') : null;
     const defaultTab = (urlTab && ['details', 'checklists', 'comments', 'activity'].includes(urlTab))
         ? (urlTab as 'details' | 'checklists' | 'comments' | 'activity')
         : (initialTab || 'details');
 
-    const [activeTab, setActiveTab] = useState<'details' | 'checklists' | 'comments' | 'activity'>(defaultTab);
+    const [activeTab, setActiveTab] = useState<'details' | 'checklists' | 'comments' | 'activity' | 'assignment_history'>(defaultTab);
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -427,7 +441,7 @@ export default function TaskDetailModal({
     const isAssignee = task.assignees?.some((a: any) => a.user?.id === currentUser?.id);
     const hasAcknowledged = task.assignees?.find((a: any) => a.user?.id === currentUser?.id)?.pivot?.acknowledged_at !== null;
 
-    const canEditTask = Boolean(
+    const canEditTask = !readOnly && Boolean(
         (task?.created_by && task.created_by === currentUser?.id) ||
         (task?.project && task.project.created_by === currentUser?.id) ||
         (project && project.created_by === currentUser?.id) ||
@@ -436,7 +450,7 @@ export default function TaskDetailModal({
         currentUser?.roles?.some((r: any) => ['Super Admin'].includes(r.name))
     );
 
-    const canApproveTask = Boolean(
+    const canApproveTask = !readOnly && Boolean(
         (task?.created_by && task.created_by === currentUser?.id) ||
         (task?.project && task.project.created_by === currentUser?.id) ||
         (project && project.created_by === currentUser?.id) ||
@@ -616,6 +630,7 @@ export default function TaskDetailModal({
                                     { id: 'checklists', label: `Checklists (${task.checklists?.length || 0})` },
                                     { id: 'comments', label: `Comments (${task.comments?.length || 0})` },
                                     { id: 'activity', label: `Activity (${task.activities?.length || 0})` },
+                                    ...(assignmentHistory ? [{ id: 'assignment_history', label: `Assignment History (${assignmentHistory.length})` }] : []),
                                 ].map((tab) => (
                                     <button
                                         key={tab.id}
@@ -961,7 +976,7 @@ export default function TaskDetailModal({
                                         </div>
 
                                         {/* Acknowledge Alert */}
-                                        {isAssignee && !hasAcknowledged && (
+                                        {!readOnly && isAssignee && !hasAcknowledged && (
                                             <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl">
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -998,7 +1013,7 @@ export default function TaskDetailModal({
                                 {/* Checklists Tab */}
                                 {activeTab === 'checklists' && (
                                     <div className="space-y-4">
-                                        <form onSubmit={addChecklist} className="flex gap-2">
+                                        {!readOnly && <form onSubmit={addChecklist} className="flex gap-2">
                                             <input
                                                 type="text"
                                                 value={checklistForm.data.title}
@@ -1013,7 +1028,7 @@ export default function TaskDetailModal({
                                             >
                                                 Add
                                             </button>
-                                        </form>
+                                        </form>}
 
                                         <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-xs">
                                             {task.checklists?.map((item: any) => (
@@ -1022,19 +1037,20 @@ export default function TaskDetailModal({
                                                         <input
                                                             type="checkbox"
                                                             checked={item.is_completed}
-                                                            onChange={() => toggleChecklist(item)}
+                                                        disabled={readOnly}
+                                                        onChange={() => { if (!readOnly) toggleChecklist(item); }}
                                                             className="h-4 w-4 text-[#E31B23] focus:ring-[#E31B23] border-slate-300 rounded-md"
                                                         />
                                                         <span className={`ml-3 text-sm ${item.is_completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
                                                             {item.title}
                                                         </span>
                                                     </label>
-                                                    <button
+                                                    {!readOnly && <button
                                                         onClick={() => deleteChecklist(item)}
                                                         className="text-red-500 hover:text-red-700 text-xs font-medium ml-2 p-1 rounded hover:bg-red-50"
                                                     >
                                                         Delete
-                                                    </button>
+                                                    </button>}
                                                 </div>
                                             ))}
                                             {task.checklists?.length === 0 && (
@@ -1104,7 +1120,7 @@ export default function TaskDetailModal({
                                                                 </div>
                                                             </div>
 
-                                                            {canDelete && (
+                                                            {!readOnly && canDelete && (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => deleteComment(comment.id)}
@@ -1196,7 +1212,7 @@ export default function TaskDetailModal({
                                             )}
                                         </div>
 
-                                        <form onSubmit={addComment} className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs relative">
+                                        {!readOnly && <form onSubmit={addComment} className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs relative">
                                             {/* Autocomplete Popup when typing @ */}
                                             {showMentionMenu && filteredMentions.length > 0 && (
                                                 <div className="absolute bottom-full mb-2 left-4 right-4 sm:left-4 sm:right-auto sm:w-80 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100">
@@ -1447,7 +1463,7 @@ export default function TaskDetailModal({
                                                     <span>Mentioned teammates (@) will automatically receive notifications and emails so they don't miss updates.</span>
                                                 </div>
                                             )}
-                                        </form>
+                                        </form>}
                                     </div>
                                 )}
 
@@ -1481,6 +1497,31 @@ export default function TaskDetailModal({
                                                 <div className="text-sm text-slate-400 ml-4">No activity history yet.</div>
                                             )}
                                         </ul>
+                                    </div>
+                                )}
+                                {activeTab === 'assignment_history' && assignmentHistory && (
+                                    <div className="space-y-3">
+                                        <p className="text-xs text-slate-500">Riwayat penugasan permanen berdasarkan departemen penerima saat ditugaskan. Perpindahan karyawan tidak mengubah catatan ini.</p>
+                                        {assignmentHistory.map((history) => (
+                                            <div key={history.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="text-sm font-semibold text-slate-900">{history.employee_name}</span>
+                                                    {history.employee_number && <span className="text-xs text-slate-400">{history.employee_number}</span>}
+                                                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${history.unassigned_at ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700'}`}>
+                                                        {history.unassigned_at ? 'Removed' : 'Assigned'}
+                                                    </span>
+                                                    {history.source === 'backfill' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800" title="Imported from current known assignment; original assignment details may be unavailable.">Imported*</span>}
+                                                </div>
+                                                <div className="mt-2 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
+                                                    <span>Department at assignment: <strong>{history.department_name || 'Unknown'}</strong></span>
+                                                    <span>Assigned by: {history.assigned_by || 'Unknown'}</span>
+                                                    <span>Assigned: {formatDateTime(history.assigned_at)}</span>
+                                                    <span>Acknowledged: {history.acknowledged_at ? formatDateTime(history.acknowledged_at) : 'Pending'}</span>
+                                                    {history.unassigned_at && <span>Unassigned: {formatDateTime(history.unassigned_at)}</span>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {assignmentHistory.length === 0 && <p className="rounded-lg bg-white p-4 text-sm text-slate-500">No assignment history for this department.</p>}
                                     </div>
                                 )}
                             </>

@@ -37,8 +37,8 @@ class TaskAssigned extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $url = $this->task->project_id 
-            ? route('projects.show', $this->task->project_id) 
+        $url = $this->task->project_id
+            ? route('projects.show', $this->task->project_id)
             : route('tasks.index');
 
         return (new MailMessage)

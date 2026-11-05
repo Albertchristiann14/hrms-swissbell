@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
@@ -39,14 +40,60 @@ class EmployeeController extends Controller
             $query->where('employment_status', $status);
         }
 
-        $employees = $query->latest()->paginate(15)->withQueryString();
+        // Sort on the server so the order remains correct across all pages.
+        // Never pass a user-provided column name or direction directly to SQL.
+        $sort = $request->input('sort');
+        $directionInput = $request->input('direction', 'asc');
+        $direction = is_string($directionInput) ? strtolower($directionInput) : '';
+        $sortableColumns = ['employee', 'id', 'department', 'position', 'status', 'join_date'];
+        $isSorted = in_array($sort, $sortableColumns, true) && in_array($direction, ['asc', 'desc'], true);
+
+        if ($isSorted) {
+            switch ($sort) {
+                case 'employee':
+                    $query->orderByRaw('CASE WHEN employees.user_id IS NULL THEN 1 ELSE 0 END');
+                    $query->orderBy(User::query()->selectRaw('LOWER(name)')->whereColumn('users.id', 'employees.user_id')->limit(1), $direction);
+                    break;
+                case 'department':
+                    $query->orderByRaw('CASE WHEN employees.department_id IS NULL THEN 1 ELSE 0 END');
+                    $query->orderBy(Department::query()->selectRaw('LOWER(name)')->whereColumn('departments.id', 'employees.department_id')->limit(1), $direction);
+                    break;
+                case 'position':
+                    $query->orderByRaw('CASE WHEN employees.position_id IS NULL THEN 1 ELSE 0 END');
+                    $query->orderBy(Position::query()->selectRaw('LOWER(name)')->whereColumn('positions.id', 'employees.position_id')->limit(1), $direction);
+                    break;
+                case 'id':
+                    $query->orderBy('employees.employee_number', $direction);
+                    break;
+                case 'status':
+                    $query->orderBy('employees.employment_status', $direction);
+                    break;
+                case 'join_date':
+                    $query->orderByRaw('CASE WHEN employees.join_date IS NULL THEN 1 ELSE 0 END');
+                    $query->orderBy('employees.join_date', $direction);
+                    break;
+            }
+
+            $query->orderBy('employees.id');
+        } else {
+            // Third click restores the existing default (newest records first).
+            $query->latest('employees.created_at')->orderByDesc('employees.id');
+        }
+
+        $employees = $query->paginate(15)->withQueryString();
+
+        $filters = $request->only(['search', 'department', 'status']);
+        if ($isSorted) {
+            $filters['sort'] = $sort;
+            $filters['direction'] = $direction;
+        }
 
         return Inertia::render('Organization/Employees/Index', [
             'employees' => $employees,
             'departments' => Department::getCachedList(),
             'positions' => Position::getCachedList(),
             'roles' => Role::pluck('name'),
-            'filters' => $request->only(['search', 'department', 'status']),
+            'filters' => $filters,
         ]);
     }
 
@@ -90,7 +137,7 @@ class EmployeeController extends Controller
             'employee_number' => 'required|string|unique:employees,employee_number',
             'phone_number' => 'nullable|string',
             'department_id' => 'nullable|exists:departments,id',
-            'position_id' => 'nullable|exists:positions,id',
+            'position_id' => ['nullable', Rule::exists('positions', 'id')->where('department_id', $request->input('department_id'))],
             'supervisor_id' => 'nullable|exists:employees,id',
             'join_date' => 'nullable|date',
             'employment_status' => 'required|string',
@@ -177,7 +224,7 @@ class EmployeeController extends Controller
             'employee_number' => 'required|string|unique:employees,employee_number,'.$employee->id,
             'phone_number' => 'nullable|string',
             'department_id' => 'nullable|exists:departments,id',
-            'position_id' => 'nullable|exists:positions,id',
+            'position_id' => ['nullable', Rule::exists('positions', 'id')->where('department_id', $request->input('department_id'))],
             'supervisor_id' => 'nullable|exists:employees,id',
             'join_date' => 'nullable|date',
             'employment_status' => 'required|string',
