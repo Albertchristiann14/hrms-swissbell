@@ -69,6 +69,76 @@ class MasterKeyWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_master_key_details_include_full_extension_history_and_last_request(): void
+    {
+        [$hkStaff, $employee] = $this->createEmployee('Housekeeping', 'Staff / Employee', 'Room Attendant');
+
+        $first = MasterKeyRequest::create([
+            'request_number' => 'MKR-HISTORY-001',
+            'request_type' => 'create_new',
+            'employee_id' => $employee->id,
+            'department_id' => $employee->department_id,
+            'key_number' => 'MK-HK-HISTORY',
+            'key_type' => 'Floor Key',
+            'room_range_access' => 'Floor 3',
+            'valid_from' => now()->subMonths(6)->toDateString(),
+            'valid_until' => now()->subMonths(3)->toDateString(),
+            'requested_at' => now()->subMonths(6),
+        ]);
+
+        MasterKeyRequest::create([
+            'request_number' => 'MKR-HISTORY-002',
+            'request_type' => 'extension',
+            'employee_id' => $employee->id,
+            'department_id' => $employee->department_id,
+            'key_number' => 'MK-HK-HISTORY',
+            'key_type' => 'Floor Key',
+            'room_range_access' => 'Floor 3',
+            'valid_from' => now()->subMonths(3)->toDateString(),
+            'valid_until' => now()->toDateString(),
+            'previous_request_id' => $first->id,
+            'requested_at' => now()->subMonths(3),
+        ]);
+
+        $this->actingAs($hkStaff)->get(route('master-keys.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('MasterKey/Index')
+                ->has('renewalHistories.MK-HK-HISTORY', 2)
+                ->where('renewalHistories.MK-HK-HISTORY.0.request_number', 'MKR-HISTORY-002')
+                ->where('renewalHistories.MK-HK-HISTORY.1.request_number', 'MKR-HISTORY-001')
+                ->etc());
+    }
+
+    public function test_regular_staff_only_receive_their_own_master_key_history(): void
+    {
+        [$staff, $employee] = $this->createEmployee('Housekeeping', 'Staff / Employee', 'Room Attendant');
+        [, $otherEmployee] = $this->createEmployee('Housekeeping', 'Staff / Employee', 'Room Attendant');
+
+        foreach ([$employee, $otherEmployee] as $index => $requester) {
+            MasterKeyRequest::create([
+                'request_number' => 'MKR-SCOPE-' . ($index + 1),
+                'request_type' => 'extension',
+                'employee_id' => $requester->id,
+                'department_id' => $requester->department_id,
+                'key_number' => 'MK-SHARED-01',
+                'key_type' => 'Floor Key',
+                'room_range_access' => 'Floor 3',
+                'valid_from' => now()->toDateString(),
+                'valid_until' => now()->addMonths(3)->toDateString(),
+                'requested_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($staff)->get(route('master-keys.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('MasterKey/Index')
+                ->has('renewalHistories.MK-SHARED-01', 1)
+                ->where('renewalHistories.MK-SHARED-01.0.request_number', 'MKR-SCOPE-1')
+                ->etc());
+    }
+
     public function test_only_hod_housekeeping_or_it_can_update_status_and_others_are_denied(): void
     {
         [$hkStaff, $hkEmp] = $this->createEmployee('Housekeeping', 'Staff / Employee', 'Room Attendant');

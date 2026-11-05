@@ -3,24 +3,54 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 
 export default function DirectoryIndex({ employees = [], departments = [], filters = {} }: any) {
-    const searchTimeoutRef = React.useRef<any>(null);
+    const searchTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pendingSearchRef = React.useRef<string | null>(null);
+    const latestFiltersRef = React.useRef(filters);
+    latestFiltersRef.current = filters;
+
+    const flushSearch = React.useCallback(() => {
+        searchTimeoutRef.current = null;
+        if (document.visibilityState !== 'visible' || pendingSearchRef.current === null) return;
+
+        const search = pendingSearchRef.current;
+        pendingSearchRef.current = null;
+        router.get(
+            route('directory.index'),
+            { ...latestFiltersRef.current, search },
+            { preserveState: true, preserveScroll: true, replace: true }
+        );
+    }, []);
+
+    const scheduleSearch = React.useCallback(() => {
+        if (searchTimeoutRef.current !== null) clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = null;
+        if (document.visibilityState === 'visible' && pendingSearchRef.current !== null) {
+            searchTimeoutRef.current = setTimeout(flushSearch, 300);
+        }
+    }, [flushSearch]);
+
+    React.useEffect(() => {
+        const onVisibilityChange = () => scheduleSearch();
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            if (searchTimeoutRef.current !== null) clearTimeout(searchTimeoutRef.current);
+            searchTimeoutRef.current = null;
+            pendingSearchRef.current = null;
+        };
+    }, [scheduleSearch]);
 
     const handleSearch = (e: any) => {
-        const val = e.target.value;
-        if (searchTimeoutRef.current) {
-            clearTimeout(searchTimeoutRef.current);
-        }
-        searchTimeoutRef.current = setTimeout(() => {
-            router.get(
-                route('directory.index'),
-                { ...filters, search: val },
-                { preserveState: true, preserveScroll: true, replace: true }
-            );
-        }, 300);
+        pendingSearchRef.current = e.target.value;
+        scheduleSearch();
     };
 
     const handleDepartmentChange = (e: any) => {
-        router.get(route('directory.index'), { ...filters, department_id: e.target.value }, { preserveState: true, preserveScroll: true, replace: true });
+        if (searchTimeoutRef.current !== null) clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = null;
+        const search = pendingSearchRef.current ?? filters.search;
+        pendingSearchRef.current = null;
+        router.get(route('directory.index'), { ...filters, search, department_id: e.target.value }, { preserveState: true, preserveScroll: true, replace: true });
     };
 
     const employeeList = Array.isArray(employees) ? employees : (employees?.data || []);

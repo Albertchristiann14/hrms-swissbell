@@ -17,6 +17,7 @@ class TaskAssignmentHistory extends Model
         'assigned_by_user_id',
         'assigned_at',
         'acknowledged_at',
+        'reminder_sent_at',
         'unassigned_at',
         'source',
     ];
@@ -24,6 +25,7 @@ class TaskAssignmentHistory extends Model
     protected $casts = [
         'assigned_at' => 'datetime',
         'acknowledged_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
         'unassigned_at' => 'datetime',
     ];
 

@@ -47,6 +47,36 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
     const [revisionModalTask, setRevisionModalTask] = useState<any>(null);
     const [filterOverdue, setFilterOverdue] = useState(false);
     const isDraggingRef = useRef(false);
+    const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const mountedRef = useRef(true);
+
+    const resetDragAfter = (delay: number) => {
+        if (dragResetTimerRef.current !== null) clearTimeout(dragResetTimerRef.current);
+        dragResetTimerRef.current = setTimeout(() => {
+            isDraggingRef.current = false;
+            dragResetTimerRef.current = null;
+        }, delay);
+    };
+
+    const showTemporaryWarning = (message: string) => {
+        if (!mountedRef.current) return;
+        setWarningMessage(message);
+        if (warningTimerRef.current !== null) clearTimeout(warningTimerRef.current);
+        warningTimerRef.current = setTimeout(() => {
+            warningTimerRef.current = null;
+            setWarningMessage(null);
+        }, 4500);
+    };
+
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+            if (dragResetTimerRef.current !== null) clearTimeout(dragResetTimerRef.current);
+            if (warningTimerRef.current !== null) clearTimeout(warningTimerRef.current);
+        };
+    }, []);
 
     // Keep localTasks in sync with Inertia tasks prop updates
     useEffect(() => {
@@ -88,9 +118,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
         const handleDragClean = () => {
             setDraggedTaskId(null);
             setDraggedOverColumn(null);
-            setTimeout(() => {
-                isDraggingRef.current = false;
-            }, 50);
+            resetDragAfter(50);
         };
         window.addEventListener('dragend', handleDragClean);
         window.addEventListener('drop', handleDragClean);
@@ -135,24 +163,20 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
         // Immediately reset drag states to prevent cards from staying greyed out
         setDraggedTaskId(null);
         setDraggedOverColumn(null);
-        setTimeout(() => {
-            isDraggingRef.current = false;
-        }, 50);
+        resetDragAfter(50);
 
         const currentTask = localTasks.find((t: any) => t.id === taskId);
         if (!currentTask || currentTask.status === newStatus) return;
 
         // Restriction: Only task creator can approve
         if (newStatus === 'Approved' && !canApproveTask(currentTask)) {
-            setWarningMessage('Hanya pembuat/pemberi tugas yang dapat menyetujui (approve) task ini.');
-            setTimeout(() => setWarningMessage(null), 4500);
+            showTemporaryWarning('Hanya pembuat/pemberi tugas yang dapat menyetujui (approve) task ini.');
             return;
         }
 
         // Restriction: Once approved, assignee cannot revert status
         if (currentTask.status === 'Approved' && newStatus !== 'Approved' && !canApproveTask(currentTask)) {
-            setWarningMessage('Task yang sudah disetujui (Approved) tidak dapat diubah kembali oleh assignee.');
-            setTimeout(() => setWarningMessage(null), 4500);
+            showTemporaryWarning('Task yang sudah disetujui (Approved) tidak dapat diubah kembali oleh assignee.');
             return;
         }
 
@@ -167,10 +191,10 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
             preserveScroll: true,
             preserveState: true,
             onError: (errs) => {
+                if (!mountedRef.current) return;
                 // Revert if error occurs
                 setLocalTasks(previousTasks);
-                setWarningMessage(Object.values(errs)[0] as string || 'Gagal memperbarui status task.');
-                setTimeout(() => setWarningMessage(null), 4500);
+                showTemporaryWarning(Object.values(errs)[0] as string || 'Gagal memperbarui status task.');
             }
         });
     };
@@ -382,9 +406,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                 onDragEnd={() => {
                                                     setDraggedTaskId(null);
                                                     setDraggedOverColumn(null);
-                                                    setTimeout(() => {
-                                                        isDraggingRef.current = false;
-                                                    }, 100);
+                                                    resetDragAfter(100);
                                                 }}
                                                 onClick={() => {
                                                     if (!isDraggingRef.current) {

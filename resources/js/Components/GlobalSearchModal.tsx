@@ -59,7 +59,10 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
         if (isOpen) {
             setQuery('');
             setSelectedIndex(0);
-            setTimeout(() => inputRef.current?.focus(), 50);
+            const focusTimer = setTimeout(() => {
+                if (document.visibilityState === 'visible') inputRef.current?.focus();
+            }, 50);
+            return () => clearTimeout(focusTimer);
         }
     }, [isOpen]);
 

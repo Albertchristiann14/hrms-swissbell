@@ -195,6 +195,37 @@ class MasterKeyRequestController extends Controller
 
         $requests = $query->paginate(15)->withQueryString();
 
+        // One lightweight query for the currently visible keys: preserve their
+        // complete request / extension history even when older rows are on other pages.
+        $visibleKeyNumbers = $requests->getCollection()->pluck('key_number')->filter()->unique()->values();
+        $renewalHistories = [];
+        if ($visibleKeyNumbers->isNotEmpty()) {
+            $historyQuery = MasterKeyRequest::query()
+                ->whereIn('key_number', $visibleKeyNumbers)
+                ->orderByRaw('COALESCE(requested_at, created_at) DESC')
+                ->orderByDesc('id');
+
+            if (! $canManageAll) {
+                $historyQuery->where('employee_id', $userEmployee?->id);
+            }
+
+            $renewalHistories = $historyQuery->get([
+                'id', 'request_number', 'request_type', 'key_number',
+                'request_by', 'requested_by_username', 'status', 'requested_at', 'created_at',
+                'valid_from', 'valid_until', 'previous_request_id',
+            ])->groupBy('key_number')->map(fn ($rows) => $rows->map(fn ($row) => [
+                'id' => $row->id,
+                'request_number' => $row->request_number,
+                'request_type' => $row->request_type,
+                'request_by' => $row->getRawOriginal('request_by') ?: ($row->requested_by_username ?: '-'),
+                'status' => $row->status,
+                'requested_at' => ($row->requested_at ?? $row->created_at)?->toIso8601String(),
+                'valid_from' => $row->valid_from?->format('Y-m-d'),
+                'valid_until' => $row->valid_until?->format('Y-m-d'),
+                'previous_request_id' => $row->previous_request_id,
+            ])->values()->all())->all();
+        }
+
         // Statistics
         $statsBaseQuery = MasterKeyRequest::query();
         if (!$canManageAll) {
@@ -269,6 +300,7 @@ class MasterKeyRequestController extends Controller
 
         return Inertia::render('MasterKey/Index', [
             'requests' => $requests,
+            'renewalHistories' => $renewalHistories,
             'filters' => [
                 'tab' => $tab,
                 'search' => $search ?? '',
