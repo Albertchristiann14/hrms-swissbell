@@ -33,6 +33,21 @@ export default function EmployeeForm({ auth, employee, currentRole, departments,
         role: currentRole || 'Staff / Employee',
     });
 
+    const availablePositions = posList.filter((position: any) =>
+        data.department_id !== '' && String(position.department_id) === data.department_id
+    );
+
+    const changeDepartment = (departmentId: string) => {
+        // Positions are department-specific. Clear a stale position when changing department.
+        setData(previous => ({
+            ...previous,
+            department_id: departmentId,
+            position_id: previous.position_id && posList.some((position: any) =>
+                String(position.id) === previous.position_id && String(position.department_id) === departmentId
+            ) ? previous.position_id : '',
+        }));
+    };
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         if (isEditing) {
@@ -58,8 +73,8 @@ export default function EmployeeForm({ auth, employee, currentRole, departments,
         >
             <Head title={isEditing ? `Edit ${employee.user?.name}` : 'New Employee'} />
 
-            <div className="py-8">
-                <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="max-w-3xl mx-auto">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
                         <form onSubmit={submit} className="p-6 sm:p-8 space-y-6">
                             {/* Account Info */}
@@ -108,17 +123,18 @@ export default function EmployeeForm({ auth, employee, currentRole, departments,
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Department</label>
-                                        <select value={data.department_id} onChange={e => setData('department_id', e.target.value)} className="mt-1 block w-full border-slate-300 rounded-xl shadow-xs text-sm focus:ring-1 focus:ring-[#E31B23] focus:border-[#E31B23]">
+                                        <select value={data.department_id} onChange={e => changeDepartment(e.target.value)} className="mt-1 block w-full border-slate-300 rounded-xl shadow-xs text-sm focus:ring-1 focus:ring-[#E31B23] focus:border-[#E31B23]">
                                             <option value="">-- Select Department --</option>
                                             {deptList.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Position</label>
-                                        <select value={data.position_id} onChange={e => setData('position_id', e.target.value)} className="mt-1 block w-full border-slate-300 rounded-xl shadow-xs text-sm focus:ring-1 focus:ring-[#E31B23] focus:border-[#E31B23]">
-                                            <option value="">-- Select Position --</option>
-                                            {posList.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        <select value={data.position_id} onChange={e => setData('position_id', e.target.value)} disabled={!data.department_id} className="mt-1 block w-full border-slate-300 rounded-xl shadow-xs text-sm focus:ring-1 focus:ring-[#E31B23] focus:border-[#E31B23] disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                            <option value="">{data.department_id ? '-- Select Position --' : '-- Choose Department First --'}</option>
+                                            {availablePositions.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                                         </select>
+                                        {errors.position_id && <p className="text-red-600 text-xs mt-1">{errors.position_id}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Supervisor</label>

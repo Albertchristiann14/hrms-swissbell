@@ -30,8 +30,8 @@ export default function PerformanceShow({ employee, period, score, assessment, t
         >
             <Head title={`Performance - ${employee.user.name}`} />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     
                     {/* Header Info */}
                     <div className="bg-white p-6 shadow-xs rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

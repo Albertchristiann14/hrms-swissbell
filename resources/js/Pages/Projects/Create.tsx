@@ -26,8 +26,8 @@ export default function Create({ auth, employees, departments = [] }: PageProps<
         >
             <Head title="Create Project" />
 
-            <div className="py-8">
-                <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
+            <div className="w-full">
+                <div className="max-w-2xl mx-auto">
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200 p-6 sm:p-8">
                         <form onSubmit={submit}>
                             <div className="mb-5">

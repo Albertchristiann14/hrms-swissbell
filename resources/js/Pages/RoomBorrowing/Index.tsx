@@ -385,7 +385,7 @@ export default function Index({
         >
             <Head title="Room & Key Borrowing - SIPU Swiss-Belinn SKA" />
 
-            <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full space-y-4">
                 {/* Flash Messages */}
                 {flash?.success && (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 shadow-xs flex items-center justify-between text-emerald-800 transition-all">

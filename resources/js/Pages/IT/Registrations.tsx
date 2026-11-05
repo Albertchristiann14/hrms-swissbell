@@ -203,7 +203,7 @@ export default function Registrations({ registrations, filters, stats }: PagePro
         >
             <Head title="Registration Approvals - IT Operations - SIPU Management" />
 
-            <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+            <div className="w-full space-y-4">
                 {/* Description Info Banner */}
                 <div className="bg-white rounded-2xl p-4 border border-red-100 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">

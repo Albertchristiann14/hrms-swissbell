@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => fn () => $request->user() ? $request->user()->load(['roles', 'employee.department', 'employee.position']) : null,
+                'canViewDepartmentTasks' => fn () => $request->user()?->hasAnyRole(['Super Admin', 'General Manager']) ?? false,
                 'notifications' => function () use ($request) {
                     if (! $request->user()) {
                         return [];

@@ -20,37 +20,37 @@ export default function ManagerDashboard({ data }: { data: any }) {
     const departmentPerformance = data?.departmentPerformance || [];
 
     const statItems = [
-        { 
-            label: 'Active Projects', 
-            value: stats.activeProjects, 
-            gradient: 'from-indigo-500 to-indigo-600', 
+        {
+            label: 'Active Projects',
+            value: stats.activeProjects,
+            gradient: 'from-indigo-500 to-indigo-600',
             href: route('projects.index', { status: 'Active' }),
             hint: 'View active projects',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg> 
+            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         },
-        { 
-            label: 'Active Tasks', 
-            value: stats.activeTasks, 
-            gradient: 'from-blue-500 to-blue-600', 
+        {
+            label: 'Active Tasks',
+            value: stats.activeTasks,
+            gradient: 'from-blue-500 to-blue-600',
             href: route('tasks.index', { filter: 'active' }),
             hint: 'View active tasks',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> 
+            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
         },
-        { 
-            label: 'Completed (Month)', 
-            value: stats.completedThisMonth, 
-            gradient: 'from-emerald-500 to-emerald-600', 
+        {
+            label: 'Completed (Month)',
+            value: stats.completedThisMonth,
+            gradient: 'from-emerald-500 to-emerald-600',
             href: route('tasks.index', { filter: 'completed' }),
             hint: 'View tasks completed this month',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> 
+            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         },
-        { 
-            label: 'Overdue Tasks', 
-            value: stats.overdueTasks, 
-            gradient: 'from-red-500 to-rose-600', 
+        {
+            label: 'Overdue Tasks',
+            value: stats.overdueTasks,
+            gradient: 'from-red-500 to-rose-600',
             href: route('tasks.index', { filter: 'overdue' }),
             hint: 'View overdue tasks',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg> 
+            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
         },
     ];
 
@@ -69,7 +69,9 @@ export default function ManagerDashboard({ data }: { data: any }) {
         'To Do': '#64748b',
         'In Progress': '#3b82f6',
         'Review': '#f59e0b',
-        'Done': '#10b981',
+        'Done': '#f59e0b',
+        'Approved': '#10b981',
+        'Cancelled': '#9ca3af',
     };
 
     return (
@@ -270,7 +272,7 @@ export default function ManagerDashboard({ data }: { data: any }) {
                     <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
                         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                             <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                            Department Performance
+                            Department Task History
                         </h3>
                     </div>
                     <div className="overflow-x-auto">
@@ -280,8 +282,9 @@ export default function ManagerDashboard({ data }: { data: any }) {
                                     <th className="text-left px-5 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Department</th>
                                     <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Employees</th>
                                     <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Active Tasks</th>
-                                    <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Completed</th>
+                                    <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Approved</th>
                                     <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Completion Rate</th>
+                                    <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Details</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -312,6 +315,14 @@ export default function ManagerDashboard({ data }: { data: any }) {
                                                     </div>
                                                     <span className="text-xs font-bold text-gray-600">{completionRate}%</span>
                                                 </div>
+                                            </td>
+                                            <td className="text-center px-4 py-3.5">
+                                                <Link
+                                                    href={route('dashboard.departments.tasks.history', { department: dept.id })}
+                                                    className="inline-flex items-center rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                >
+                                                    View History →
+                                                </Link>
                                             </td>
                                         </tr>
                                     );

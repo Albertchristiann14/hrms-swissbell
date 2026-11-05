@@ -29,8 +29,8 @@ export default function AuditLogs({ auth, logs, filters }: PageProps<{ logs: any
         >
             <Head title="Audit Logs" />
 
-            <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
                     {/* Filters */}
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="relative w-72">
@@ -58,7 +58,7 @@ export default function AuditLogs({ auth, logs, filters }: PageProps<{ logs: any
                     </div>
 
                     <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
-                        <div className="p-6 text-slate-900 overflow-x-auto">
+                        <div className="p-4 sm:p-5 text-slate-900 overflow-x-auto">
                             <table className="min-w-full divide-y divide-slate-200 text-xs">
                                 <thead className="bg-slate-50">
                                     <tr>

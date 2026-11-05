@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import Badge from '@/Components/Badge';
 
 interface AttendanceItem {
@@ -77,15 +77,37 @@ export default function MyAttendance({
     location,
     shiftContext,
 }: Props) {
-    // Live Server Clock
+    const openedFromHr = new URLSearchParams(usePage().url.split('?')[1] || '').get('source') === 'hr';
+
+    // Live Server Clock: run only while this browser tab is visible.
+    // On return, calculate elapsed real time to avoid losing seconds while paused.
     const [currentTime, setCurrentTime] = useState<Date>(new Date(serverTime || Date.now()));
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime((prev) => new Date(prev.getTime() + 1000));
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
+        const initialTimestamp = new Date(serverTime || Date.now()).getTime();
+        const startedAt = Date.now();
+        let timer: ReturnType<typeof setInterval> | undefined;
+
+        const updateClock = () => setCurrentTime(new Date(initialTimestamp + Date.now() - startedAt));
+        const syncVisibility = () => {
+            if (timer !== undefined) {
+                clearInterval(timer);
+                timer = undefined;
+            }
+            if (document.visibilityState === 'visible') {
+                updateClock();
+                timer = setInterval(updateClock, 1000);
+            }
+        };
+
+        syncVisibility();
+        document.addEventListener('visibilitychange', syncVisibility);
+
+        return () => {
+            if (timer !== undefined) clearInterval(timer);
+            document.removeEventListener('visibilitychange', syncVisibility);
+        };
+    }, [serverTime]);
 
     // Geolocation state
     const [geoStatus, setGeoStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied' | 'error'>('idle');
@@ -230,6 +252,13 @@ export default function MyAttendance({
             header={
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
+                        <nav className="mb-1 flex items-center gap-2 text-xs font-medium text-slate-500" aria-label="Breadcrumb">
+                            <Link href={route('dashboard', { view: openedFromHr ? 'hr' : 'overview' })} className="hover:text-[#E31B23]">
+                                {openedFromHr ? 'Human Resources' : 'My Workspace'}
+                            </Link>
+                            <span className="text-slate-300">/</span>
+                            <span className="text-slate-800">My Attendance</span>
+                        </nav>
                         <h2 className="font-bold text-xl text-slate-900 tracking-tight">My Attendance & Geofencing</h2>
                         <p className="text-xs text-slate-500">Live GPS hotel check-in and shift attendance tracking.</p>
                     </div>
@@ -242,8 +271,8 @@ export default function MyAttendance({
         >
             <Head title="My Attendance" />
 
-            <div className="py-8">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="w-full">
+                <div className="w-full space-y-4">
 
                     {/* Server Error / Success Alerts */}
                     {(errors as any)?.message && (
