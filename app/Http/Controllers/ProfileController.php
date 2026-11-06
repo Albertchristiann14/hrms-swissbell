@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,10 +53,51 @@ class ProfileController extends Controller
 
         if ($request->hasFile('photo')) {
             if ($request->user()->profile_photo_path) {
-                Storage::delete($request->user()->profile_photo_path);
+                Storage::disk('public')->delete($request->user()->profile_photo_path);
             }
-            $path = $request->file('photo')->store('profile-photos');
-            $request->user()->profile_photo_path = $path;
+
+            $file = $request->file('photo');
+            $saved = false;
+
+            if (extension_loaded('gd')) {
+                try {
+                    $source = @imagecreatefromstring(file_get_contents($file->getRealPath()));
+                    if ($source !== false) {
+                        $origW = imagesx($source);
+                        $origH = imagesy($source);
+                        $targetSize = 360;
+
+                        // Crop center square
+                        $minEdge = min($origW, $origH);
+                        $srcX = (int) (($origW - $minEdge) / 2);
+                        $srcY = (int) (($origH - $minEdge) / 2);
+
+                        $dst = imagecreatetruecolor($targetSize, $targetSize);
+                        imagecopyresampled($dst, $source, 0, 0, $srcX, $srcY, $targetSize, $targetSize, $minEdge, $minEdge);
+
+                        $filename = Str::random(40) . '.webp';
+                        $path = 'profile-photos/' . $filename;
+
+                        ob_start();
+                        imagewebp($dst, null, 85);
+                        $optimized = ob_get_clean();
+
+                        imagedestroy($source);
+                        imagedestroy($dst);
+
+                        Storage::disk('public')->put($path, $optimized);
+                        $request->user()->profile_photo_path = $path;
+                        $saved = true;
+                    }
+                } catch (\Throwable $e) {
+                    \Log::warning('Profile photo optimization failed, falling back to default upload: ' . $e->getMessage());
+                }
+            }
+
+            if (!$saved) {
+                $path = $file->store('profile-photos', 'public');
+                $request->user()->profile_photo_path = $path;
+            }
         }
 
         $request->user()->save();

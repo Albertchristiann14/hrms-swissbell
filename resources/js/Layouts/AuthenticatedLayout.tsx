@@ -795,6 +795,10 @@ function AuthenticatedShell({
                                     <img
                                         src={user.profile_photo_url}
                                         alt={user.name}
+                                        width="32"
+                                        height="32"
+                                        loading="lazy"
+                                        decoding="async"
                                         className="h-full w-full object-cover"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&color=7F9CF5&background=EBF4FF`;
@@ -1055,6 +1059,10 @@ function AuthenticatedShell({
                                             <img
                                                 src={user.profile_photo_url}
                                                 alt={user.name}
+                                                width="36"
+                                                height="36"
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="h-full w-full object-cover"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&color=7F9CF5&background=EBF4FF`;
@@ -1153,6 +1161,10 @@ function AuthenticatedShell({
                                     <img
                                         src={user.profile_photo_url}
                                         alt={user.name}
+                                        width="32"
+                                        height="32"
+                                        loading="lazy"
+                                        decoding="async"
                                         className="h-full w-full object-cover"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&color=7F9CF5&background=EBF4FF`;

@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-OQpaS_Dv.js";var t=e();function n({className:e=``,...n}){return(0,t.jsx)(`input`,{...n,type:`checkbox`,className:`rounded-md border-slate-300 text-[#E31B23] shadow-xs focus:ring-[#E31B23] `+e})}export{n as t};

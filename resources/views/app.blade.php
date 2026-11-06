@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title inertia>{{ config('app.name', 'SIPU Management') }}</title>
+        <meta name="description" content="SIPU Swiss-Belinn SKA Pekanbaru - Integrated hotel management system for operations, attendance, employee leaves, schedules, and task assignments.">
         <link rel="icon" type="image/jpeg" href="/logo/logoswissbell.jpg">
         <link rel="manifest" href="/manifest.json">
         <meta name="theme-color" content="#E31B23">
@@ -14,8 +15,12 @@
         @endif
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+        <link rel="dns-prefetch" href="https://fonts.bunny.net">
+        <link rel="preload" href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript>
+            <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+        </noscript>
 
         <!-- Scripts -->
         @routes
