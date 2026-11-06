@@ -888,10 +888,10 @@ export default function Dashboard({
                         <Link
                             href={route('tasks.index', { filter: 'overdue' })}
                             className="bg-white p-4 rounded-2xl border border-red-200/90 shadow-xs col-span-2 sm:col-span-1 hover:border-red-400 hover:shadow-md hover:-translate-y-0.5 transition-all group block select-none cursor-pointer"
-                            title="Klik untuk membuka daftar task yang terlambat"
+                            title="Click to view overdue tasks"
                         >
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-red-700 font-bold group-hover:text-red-800 transition-colors">Overdue (Terlambat)</span>
+                                <span className="text-xs text-red-700 font-bold group-hover:text-red-800 transition-colors">Overdue</span>
                                 <span className="text-[10px] text-red-600 font-semibold bg-red-50 px-1.5 py-0.5 rounded">Filter →</span>
                             </div>
                             <p className="text-2xl font-extrabold text-red-600 mt-1 tabular-nums">{overdueCount}</p>
@@ -908,7 +908,7 @@ export default function Dashboard({
                                     <span>Deadline Tasks</span>
                                     {lateTasks.length > 0 && (
                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-700 border border-red-200">
-                                            {lateTasks.length} Terlambat
+                                            {lateTasks.length} Overdue
                                         </span>
                                     )}
                                 </h3>
@@ -917,14 +917,14 @@ export default function Dashboard({
                                 </TextLink>
                             </div>
 
-                            {/* Group 1: Terlambat (Late) */}
+                            {/* Group 1: Overdue */}
                             {sortedLateTasks.length > 0 && (
                                 <div>
                                     <div className="flex items-center gap-1.5 text-xs font-bold text-red-700 mb-2">
                                         <svg className="w-3.5 h-3.5 text-red-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
-                                        <span>Terlambat (Late)</span>
+                                        <span>Overdue</span>
                                     </div>
                                     <div className="space-y-2.5">
                                         {sortedLateTasks.map((task: any) => (

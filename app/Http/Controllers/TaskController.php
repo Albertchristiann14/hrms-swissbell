@@ -266,7 +266,7 @@ class TaskController extends Controller
         // Rule: Only the task creator (or admin) can approve a task
         if ($request->has('status') && $request->status === TaskStatus::Approved->value) {
             if (!$isCreator) {
-                abort(403, 'Hanya pembuat/pemberi tugas atau administrator yang dapat menyetujui (approve) task ini.');
+                abort(403, 'Only the task creator or administrator can approve this task.');
             }
         }
 
@@ -274,7 +274,7 @@ class TaskController extends Controller
         $currentStatusVal = $task->status instanceof TaskStatus ? $task->status->value : (string) $task->status;
         if ($currentStatusVal === TaskStatus::Approved->value && $request->has('status') && $request->status !== TaskStatus::Approved->value) {
             if (!$isCreator) {
-                abort(403, 'Task yang sudah diapprove tidak dapat diubah kembali oleh assignee.');
+                abort(403, 'Approved tasks cannot be reverted by assignees.');
             }
         }
 
@@ -315,7 +315,7 @@ class TaskController extends Controller
             $employeeId = $user->employee?->id;
             $task->comments()->create([
                 'employee_id' => $employeeId,
-                'content' => "📌 **Catatan Revisi dari Pemberi Tugas:**\n" . $request->revision_note,
+                'content' => "📌 **Revision Notes from Assigner:**\n" . $request->revision_note,
             ]);
         }
 

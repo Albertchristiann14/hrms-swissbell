@@ -587,7 +587,7 @@ export default function TaskDetailModal({
                                                             return (
                                                                 <span className="flex items-center gap-1.5 font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
                                                                     <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                                                    Periode: {formatDateUtil(sStr)} - {formatDateUtil(eStr)} ({days} hari)
+                                                                    Period: {formatDateUtil(sStr)} - {formatDateUtil(eStr)} ({days} {days === 1 ? 'day' : 'days'})
                                                                 </span>
                                                             );
                                                         }
@@ -610,8 +610,8 @@ export default function TaskDetailModal({
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                                         </svg>
                                                         <div>
-                                                            <span className="font-bold">Keterlambatan: </span>
-                                                            Task ini melewati batas waktu pada <span className="font-bold underline">{formatDateTime(task.deadline)}</span> dan belum diselesaikan.
+                                                            <span className="font-bold">Overdue: </span>
+                                                            This task passed the deadline on <span className="font-bold underline">{formatDateTime(task.deadline)}</span> and has not been completed.
                                                         </div>
                                                     </div>
                                                 )}
@@ -750,7 +750,7 @@ export default function TaskDetailModal({
                                                 const isDisabled = isApproved && !canApproveTask;
                                                 return (
                                                     <option key={s} value={s} disabled={isDisabled}>
-                                                        {s} {isDisabled ? '(Pemberi Task)' : ''}
+                                                        {s} {isDisabled ? '(Assigner Only)' : ''}
                                                     </option>
                                                 );
                                             })}
@@ -898,18 +898,18 @@ export default function TaskDetailModal({
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <h4 className="font-bold text-sm text-amber-900">
-                                                                    Hasil Kerja Menunggu Persetujuan (Approval)
+                                                                    Work Output Awaiting Approval
                                                                 </h4>
                                                                 {canApproveTask && (
                                                                     <span className="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
-                                                                        Anda Pemberi Task
+                                                                        You are the Assigner
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             <p className="text-xs text-amber-800 mt-1 leading-relaxed">
                                                                 {canApproveTask
-                                                                    ? 'Task telah diselesaikan oleh tim. Silakan periksa apakah hasil kerja sudah sesuai dengan ekspektasi Anda. Jika sesuai, silakan Approve. Jika belum sesuai, Anda dapat mengembalikannya ke In Progress (Revisi) dan menyesuaikan deadline bila diperlukan.'
-                                                                    : 'Task telah ditandai selesai oleh assignee dan sedang menunggu peninjauan serta persetujuan dari pemberi task.'}
+                                                                    ? 'Task has been completed by the team. Please review whether the work meets your expectations. If satisfied, click Approve. If revisions are required, you can return it to In Progress (Revision) and adjust the deadline if needed.'
+                                                                    : 'Task has been marked as done by the assignee and is awaiting review and approval from the task assigner.'}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -920,7 +920,7 @@ export default function TaskDetailModal({
                                                                 onClick={() => setShowRevisionModal(true)}
                                                                 className="px-3.5 py-2 bg-white hover:bg-amber-100 text-amber-800 text-xs font-bold rounded-xl border border-amber-300 shadow-xs transition-colors"
                                                             >
-                                                                ↺ Revisi & Ubah Deadline
+                                                                ↺ Revision & Adjust Deadline
                                                             </button>
                                                             <button
                                                                 type="button"
@@ -947,10 +947,10 @@ export default function TaskDetailModal({
                                                     </div>
                                                     <div>
                                                         <h4 className="font-bold text-sm text-emerald-900">
-                                                            Task Disetujui (Approved)
+                                                            Task Approved
                                                         </h4>
                                                         <p className="text-xs text-emerald-800 mt-0.5">
-                                                            Hasil kerja telah diverifikasi dan sesuai dengan ekspektasi pemberi task. Task ini dihitung 100% selesai.
+                                                            Work output has been verified and meets the assigner's expectations. This task is counted as 100% completed.
                                                         </p>
                                                     </div>
                                                 </div>
@@ -959,9 +959,9 @@ export default function TaskDetailModal({
                                                         type="button"
                                                         onClick={() => setShowRevisionModal(true)}
                                                         className="px-3 py-1.5 bg-white hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-300 shadow-xs transition-colors shrink-0"
-                                                        title="Kembalikan ke In Progress jika membutuhkan penyesuaian lanjutan"
+                                                        title="Return to In Progress if further adjustments are required"
                                                     >
-                                                        ↺ Buka Revisi
+                                                        ↺ Request Revision
                                                     </button>
                                                 )}
                                             </div>
@@ -1570,7 +1570,7 @@ export default function TaskDetailModal({
                                 )}
                                 {activeTab === 'assignment_history' && assignmentHistory && (
                                     <div className="space-y-3">
-                                        <p className="text-xs text-slate-500">Riwayat penugasan permanen berdasarkan departemen penerima saat ditugaskan. Perpindahan karyawan tidak mengubah catatan ini.</p>
+                                        <p className="text-xs text-slate-500">Permanent assignment history based on the receiving department when assigned. Employee transfers do not alter this record.</p>
                                         {assignmentHistory.map((history) => (
                                             <div key={history.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                                                 <div className="flex flex-wrap items-center gap-2">

@@ -68,7 +68,7 @@ export function getDeadlineStatus(
             const lateDays = Math.max(1, Math.floor(finishDiffMs / (24 * 60 * 60 * 1000)));
             return {
                 type: 'completed_late',
-                label: `Selesai terlambat ${lateDays} hari`,
+                label: `Completed ${lateDays} day${lateDays > 1 ? 's' : ''} late`,
                 variant: 'late_done',
                 isOverdue: false,
                 isCompleted: true,
@@ -76,13 +76,13 @@ export function getDeadlineStatus(
                 dueDateTimeFormatted,
                 diffDays: lateDays,
                 diffHours: Math.floor(finishDiffMs / (60 * 60 * 1000)),
-                explanation: `Task diselesaikan melewati batas waktu pada ${dueDateTimeFormatted}.`,
+                explanation: `Task was completed past the deadline on ${dueDateTimeFormatted}.`,
             };
         }
 
         return {
             type: 'completed_on_time',
-            label: 'Selesai tepat waktu',
+            label: 'Completed on time',
             variant: 'success',
             isOverdue: false,
             isCompleted: true,
@@ -90,7 +90,7 @@ export function getDeadlineStatus(
             dueDateTimeFormatted,
             diffDays: 0,
             diffHours: 0,
-            explanation: `Task diselesaikan tepat waktu sebelum batas waktu ${dueDateTimeFormatted}.`,
+            explanation: `Task completed on time before the deadline of ${dueDateTimeFormatted}.`,
         };
     }
 
@@ -104,8 +104,8 @@ export function getDeadlineStatus(
         const daysOverdue = Math.floor(absDiffMs / (24 * 60 * 60 * 1000));
 
         const label = daysOverdue < 1 
-            ? `Terlambat ${Math.max(1, hoursOverdue)} jam` 
-            : `Terlambat ${daysOverdue} hari`;
+            ? `${Math.max(1, hoursOverdue)} hour${hoursOverdue > 1 ? 's' : ''} overdue` 
+            : `${daysOverdue} day${daysOverdue > 1 ? 's' : ''} overdue`;
 
         return {
             type: 'overdue',
@@ -117,7 +117,7 @@ export function getDeadlineStatus(
             dueDateTimeFormatted,
             diffDays: -daysOverdue,
             diffHours: -hoursOverdue,
-            explanation: `Task ini melewati batas waktu pada ${dueDateTimeFormatted} dan belum diselesaikan.`,
+            explanation: `This task passed the deadline on ${dueDateTimeFormatted} and has not been completed.`,
         };
     }
 
@@ -126,7 +126,7 @@ export function getDeadlineStatus(
     if (isToday) {
         return {
             type: 'today',
-            label: 'Jatuh tempo hari ini',
+            label: 'Due today',
             variant: 'warning',
             isOverdue: false,
             isCompleted: false,
@@ -134,7 +134,7 @@ export function getDeadlineStatus(
             dueDateTimeFormatted,
             diffDays: 0,
             diffHours: Math.floor(diffMs / (60 * 60 * 1000)),
-            explanation: `Batas waktu pengerjaan task ini adalah hari ini pukul ${formatTime(due)}.`,
+            explanation: `The deadline for this task is today at ${formatTime(due)}.`,
         };
     }
 
@@ -144,7 +144,7 @@ export function getDeadlineStatus(
     if (daysLeft >= 1 && daysLeft <= 3) {
         return {
             type: 'soon',
-            label: `Sisa ${daysLeft} hari`,
+            label: `${daysLeft} day${daysLeft > 1 ? 's' : ''} left`,
             variant: 'soon',
             isOverdue: false,
             isCompleted: false,
@@ -152,7 +152,7 @@ export function getDeadlineStatus(
             dueDateTimeFormatted,
             diffDays: daysLeft,
             diffHours: Math.floor(diffMs / (60 * 60 * 1000)),
-            explanation: `Task ini memiliki sisa waktu ${daysLeft} hari sebelum batas waktu ${dueDateTimeFormatted}.`,
+            explanation: `This task has ${daysLeft} day${daysLeft > 1 ? 's' : ''} remaining before the deadline of ${dueDateTimeFormatted}.`,
         };
     }
 

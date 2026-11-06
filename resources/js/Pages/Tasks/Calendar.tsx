@@ -407,7 +407,7 @@ export default function Calendar({
                         { label: 'Team Calendar' },
                     ]}
                     title="Team Calendar"
-                    subtitle="Jadwal bulanan penugasan dan deadline tim hotel"
+                    subtitle="Monthly schedule of team assignments and deadlines"
                     actions={
                         <div className="flex items-center gap-2.5">
                             <TaskViewSwitcher current="calendar" />
@@ -416,7 +416,7 @@ export default function Calendar({
                                 className="inline-flex items-center gap-1.5 bg-[#E31B23] hover:bg-[#c4141b] active:bg-[#a30f15] text-white font-semibold py-2 px-3.5 rounded-xl text-xs sm:text-sm shadow-xs transition-colors"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                                <span>Tambah Task</span>
+                                <span>Create Task</span>
                             </button>
                         </div>
                     }
@@ -839,7 +839,7 @@ function TaskCard({
                             <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span>Periode: {formatRange(range.start, range.end)} ({range.daysCount} hari)</span>
+                            <span>Period: {formatRange(range.start, range.end)} ({range.daysCount} {range.daysCount === 1 ? 'day' : 'days'})</span>
                         </div>
                     );
                 }

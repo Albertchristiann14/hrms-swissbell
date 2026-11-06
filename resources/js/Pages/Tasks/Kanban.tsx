@@ -13,19 +13,19 @@ import TaskRevisionModal from '@/Components/TaskRevisionModal';
 
 const columnConfig: Record<string, { color: string; bg: string; border: string; sublabel: string; icon: JSX.Element }> = {
     'To Do': {
-        color: 'text-slate-700', bg: 'bg-slate-100', border: 'border-slate-200', sublabel: 'Akan Dikerjakan',
+        color: 'text-slate-700', bg: 'bg-slate-100', border: 'border-slate-200', sublabel: 'Pending',
         icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
     },
     'In Progress': {
-        color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', sublabel: 'Sedang Dikerjakan',
+        color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', sublabel: 'In Progress',
         icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
     },
     'Done': {
-        color: 'text-amber-800', bg: 'bg-amber-50', border: 'border-amber-200', sublabel: 'Menunggu Approval',
+        color: 'text-amber-800', bg: 'bg-amber-50', border: 'border-amber-200', sublabel: 'Awaiting Approval',
         icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     },
     'Approved': {
-        color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', sublabel: 'Disetujui',
+        color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', sublabel: 'Approved',
         icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     },
 };
@@ -170,13 +170,13 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
 
         // Restriction: Only task creator can approve
         if (newStatus === 'Approved' && !canApproveTask(currentTask)) {
-            showTemporaryWarning('Hanya pembuat/pemberi tugas yang dapat menyetujui (approve) task ini.');
+            showTemporaryWarning('Only the task creator or assigner can approve this task.');
             return;
         }
 
         // Restriction: Once approved, assignee cannot revert status
         if (currentTask.status === 'Approved' && newStatus !== 'Approved' && !canApproveTask(currentTask)) {
-            showTemporaryWarning('Task yang sudah disetujui (Approved) tidak dapat diubah kembali oleh assignee.');
+            showTemporaryWarning('Tasks that have been approved cannot be changed back by assignees.');
             return;
         }
 
@@ -194,7 +194,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                 if (!mountedRef.current) return;
                 // Revert if error occurs
                 setLocalTasks(previousTasks);
-                showTemporaryWarning(Object.values(errs)[0] as string || 'Gagal memperbarui status task.');
+                showTemporaryWarning(Object.values(errs)[0] as string || 'Failed to update task status.');
             }
         });
     };
@@ -241,7 +241,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                         { label: 'My List' },
                     ]}
                     title="My List"
-                    subtitle="Pindahkan kartu antar kolom untuk memperbarui status pekerjaan secara langsung"
+                    subtitle="Drag cards between columns to update work status in real time"
                     actions={
                         <div className="flex items-center gap-3">
                             <TaskViewSwitcher current="kanban" />
@@ -271,7 +271,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                             }`}
                         >
-                            Semua Task ({localTasks.length})
+                            All Tasks ({localTasks.length})
                         </button>
                         <button
                             type="button"
@@ -282,7 +282,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                     : 'text-slate-600 hover:text-red-700 hover:bg-red-50'
                             }`}
                         >
-                            <span>Terlambat</span>
+                            <span>Overdue</span>
                             {overdueCount > 0 && (
                                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                                     filterOverdue ? 'bg-white text-red-700' : 'bg-red-100 text-red-700'
@@ -295,7 +295,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                     {filterOverdue && (
                         <div className="text-xs text-red-600 font-medium flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                            Menampilkan task yang melewati batas waktu
+                            Showing overdue tasks
                         </div>
                     )}
                 </div>
@@ -459,10 +459,10 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                             <div className="flex items-center justify-between gap-1 mb-1.5">
                                                                 <span className="text-[10px] font-bold text-amber-800 flex items-center gap-1.5">
                                                                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                                                    Menunggu Approval
+                                                                    Awaiting Approval
                                                                 </span>
                                                                 {canApproveTask(task) && (
-                                                                    <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Pemberi Task</span>
+                                                                    <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Task Assigner</span>
                                                                 )}
                                                             </div>
                                                             {canApproveTask(task) ? (
@@ -471,15 +471,15 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                                         type="button"
                                                                         onClick={() => setRevisionModalTask(task)}
                                                                         className="flex-1 py-1 px-2 text-[10px] font-bold text-amber-800 bg-white hover:bg-amber-100 rounded-md border border-amber-300 transition-colors text-center"
-                                                                        title="Kembalikan ke In Progress dan sesuaikan due date jika belum sesuai ekspektasi"
+                                                                        title="Return to In Progress and adjust due date if revisions are needed"
                                                                     >
-                                                                        ↺ Revisi
+                                                                        ↺ Revision
                                                                     </button>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => handleDropTask(task.id, 'Approved')}
                                                                         className="flex-1 py-1 px-2 text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-md shadow-xs transition-colors text-center flex items-center justify-center gap-1"
-                                                                        title="Setujui (Approve) hasil kerja ini"
+                                                                        title="Approve this work output"
                                                                     >
                                                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                                                                         Approve
@@ -487,7 +487,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                                 </div>
                                                             ) : (
                                                                 <p className="text-[10px] text-amber-700/90 italic leading-tight">
-                                                                    Menunggu verifikasi kesesuaian dari pemberi task.
+                                                                    Awaiting verification and approval from the task assigner.
                                                                 </p>
                                                             )}
                                                         </div>
@@ -499,7 +499,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                             <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
-                                                            <span>Disetujui & Sesuai Ekspektasi</span>
+                                                            <span>Approved & Met Expectations</span>
                                                         </div>
                                                     )}
 
@@ -550,7 +550,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                                     const isDisabled = isApprovedOption && !canApproveTask(task);
                                                                     return (
                                                                         <option key={col} value={col} disabled={isDisabled}>
-                                                                            {col} {isDisabled ? '(Pemberi Task)' : ''}
+                                                                            {col} {isDisabled ? '(Assigner Only)' : ''}
                                                                         </option>
                                                                     );
                                                                 })}

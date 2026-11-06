@@ -59,7 +59,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
         : filters?.filter === 'completed' 
         ? 'Completed' 
         : filters?.filter === 'overdue' 
-        ? 'Terlambat (Overdue)' 
+        ? 'Overdue' 
         : filters?.status 
         ? `Status: ${filters.status}` 
         : null;
@@ -75,7 +75,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                         { label: 'List Task' },
                     ]}
                     title="List Task"
-                    subtitle="Daftar seluruh penugasan dan tanggung jawab tim hotel"
+                    subtitle="List of all hotel team assignments and responsibilities"
                     actions={
                         <div className="flex items-center gap-3">
                             <TaskViewSwitcher current="list" />
@@ -127,7 +127,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                                 : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                                         }`}
                                     >
-                                        Menunggu Approval
+                                        Awaiting Approval
                                     </Link>
                                     <Link
                                         href={route('tasks.index', { filter: 'completed' })}
@@ -137,7 +137,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                                 : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                                         }`}
                                     >
-                                        Approved (Selesai)
+                                        Approved (Completed)
                                     </Link>
                                     <Link
                                         href={route('tasks.index', { filter: 'overdue' })}
@@ -147,7 +147,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                                 : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                                         }`}
                                     >
-                                        <span>Terlambat</span>
+                                        <span>Overdue</span>
                                         {overdueCount > 0 && (
                                             <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
                                                 {overdueCount}
@@ -244,7 +244,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                                                 task.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
                                                                 'bg-slate-100 text-slate-800 border-slate-200'
                                                             }`}>
-                                                                {task.status === 'Done' ? 'Done (Menunggu Approval)' : task.status}
+                                                                {task.status === 'Done' ? 'Done (Awaiting Approval)' : task.status}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-xs">
@@ -298,10 +298,10 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                         </svg>
                                     }
-                                    title={activeFilterLabel ? `Tidak ada task dengan filter "${activeFilterLabel}"` : 'Belum Ada Task'}
-                                    description="Tidak ada penugasan kerja yang perlu Anda lakukan saat ini."
+                                    title={activeFilterLabel ? `No tasks found for filter "${activeFilterLabel}"` : 'No Tasks Yet'}
+                                    description="There are no work assignments to display at this time."
                                     action={{
-                                        label: '+ Buat Task Baru',
+                                        label: '+ Create New Task',
                                         onClick: () => setShowCreateModal(true),
                                     }}
                                 />

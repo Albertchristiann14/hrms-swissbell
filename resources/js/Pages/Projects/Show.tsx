@@ -152,13 +152,13 @@ export default function Show({
 
         // Restriction: Only task creator or project owner can approve
         if (newStatus === 'Approved' && !canApproveTask(currentTask)) {
-            showTemporaryWarning('Hanya pembuat/pemberi tugas yang dapat menyetujui (approve) task ini.');
+            showTemporaryWarning('Only the task creator or assigner can approve this task.');
             return;
         }
 
         // Restriction: Once approved, assignee cannot revert status
         if (currentTask.status === 'Approved' && newStatus !== 'Approved' && !canApproveTask(currentTask)) {
-            showTemporaryWarning('Task yang sudah disetujui (Approved) tidak dapat diubah kembali oleh assignee.');
+            showTemporaryWarning('Tasks that have been approved cannot be changed back by assignees.');
             return;
         }
 
@@ -504,10 +504,10 @@ export default function Show({
                                                 </span>
                                             </h3>
                                             <p className="text-[11px] text-slate-400 mt-0.5">
-                                                {status === 'To Do' && 'Belum Dimulai'}
-                                                {status === 'In Progress' && 'Sedang Dikerjakan'}
-                                                {status === 'Done' && 'Menunggu Approval'}
-                                                {status === 'Approved' && 'Disetujui'}
+                                                {status === 'To Do' && 'Pending'}
+                                                {status === 'In Progress' && 'In Progress'}
+                                                {status === 'Done' && 'Awaiting Approval'}
+                                                {status === 'Approved' && 'Approved'}
                                             </p>
                                         </div>
                                     </div>
@@ -595,10 +595,10 @@ export default function Show({
                                                             <div className="flex items-center justify-between gap-1 mb-1.5">
                                                                 <span className="text-[10px] font-bold text-amber-800 flex items-center gap-1.5">
                                                                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                                                    Menunggu Approval
+                                                                    Awaiting Approval
                                                                 </span>
                                                                 {canApproveTask(task) && (
-                                                                    <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Pemberi Task</span>
+                                                                    <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Task Assigner</span>
                                                                 )}
                                                             </div>
                                                             {canApproveTask(task) ? (
@@ -607,15 +607,15 @@ export default function Show({
                                                                         type="button"
                                                                         onClick={() => setRevisionModalTask(task)}
                                                                         className="flex-1 py-1 px-2 text-[10px] font-bold text-amber-800 bg-white hover:bg-amber-100 rounded-md border border-amber-300 transition-colors text-center"
-                                                                        title="Kembalikan ke In Progress dan sesuaikan due date jika belum sesuai ekspektasi"
+                                                                        title="Return to In Progress and adjust due date if revisions are needed"
                                                                     >
-                                                                        ↺ Revisi
+                                                                        ↺ Revision
                                                                     </button>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => handleDropTask(task.id, 'Approved')}
                                                                         className="flex-1 py-1 px-2 text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-md shadow-xs transition-colors text-center flex items-center justify-center gap-1"
-                                                                        title="Setujui (Approve) hasil kerja ini"
+                                                                        title="Approve this work output"
                                                                     >
                                                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                                                                         Approve
@@ -623,7 +623,7 @@ export default function Show({
                                                                 </div>
                                                             ) : (
                                                                 <p className="text-[10px] text-amber-700/90 italic leading-tight">
-                                                                    Menunggu verifikasi kesesuaian dari pemberi task.
+                                                                    Awaiting verification and approval from the task assigner.
                                                                 </p>
                                                             )}
                                                         </div>
@@ -635,7 +635,7 @@ export default function Show({
                                                             <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
-                                                            <span>Disetujui & Sesuai Ekspektasi</span>
+                                                            <span>Approved & Met Expectations</span>
                                                         </div>
                                                     )}
 
@@ -667,7 +667,7 @@ export default function Show({
                                                                     const isDisabled = isApprovedOption && !canApproveTask(task);
                                                                     return (
                                                                         <option key={col} value={col} disabled={isDisabled}>
-                                                                            {col} {isDisabled ? '(Pemberi Task)' : ''}
+                                                                            {col} {isDisabled ? '(Assigner Only)' : ''}
                                                                         </option>
                                                                     );
                                                                 })}
