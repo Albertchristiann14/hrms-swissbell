@@ -399,4 +399,29 @@ class TaskController extends Controller
 
         return back()->with('success', 'Task acknowledged successfully.');
     }
+
+    public function decline(Request $request, Task $task, TaskAssignmentHistoryService $assignmentHistory)
+    {
+        $employee = Auth::user()->employee;
+        if (! $employee) {
+            return back()->with('error', 'Only employees can decline task assignments.');
+        }
+
+        if (! $task->assignees()->where('employee_id', $employee->id)->exists()) {
+            abort(403, 'You are not assigned to this task.');
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|min:5|max:1000',
+        ], [
+            'reason.required' => 'Please provide a reason for declining the task assignment.',
+            'reason.min' => 'The reason must be at least 5 characters.',
+        ]);
+
+        if (! $assignmentHistory->decline($task, $employee, trim($validated['reason']))) {
+            return back()->with('error', 'Unable to decline assignment. The task may have already been acknowledged or unassigned.');
+        }
+
+        return back()->with('success', 'Task assignment declined successfully.');
+    }
 }

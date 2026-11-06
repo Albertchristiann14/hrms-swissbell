@@ -25,6 +25,8 @@ interface TaskDetailModalProps {
         assigned_at: string;
         acknowledged_at: string | null;
         unassigned_at: string | null;
+        declined_at?: string | null;
+        decline_reason?: string | null;
         source: string;
     }>;
 }
@@ -396,6 +398,42 @@ export default function TaskDetailModal({
 
     const acknowledgeTask = () => {
         router.post(route('tasks.acknowledge', task.id), {}, { preserveScroll: true });
+    };
+
+    const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
+    const [declineReason, setDeclineReason] = useState('');
+    const [declineError, setDeclineError] = useState('');
+    const [isDeclining, setIsDeclining] = useState(false);
+
+    const handleDeclineTask = (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmed = declineReason.trim();
+        if (!trimmed) {
+            setDeclineError('Please provide a reason for declining the task.');
+            return;
+        }
+        if (trimmed.length < 5) {
+            setDeclineError('The reason must be at least 5 characters long.');
+            return;
+        }
+
+        setIsDeclining(true);
+        setDeclineError('');
+
+        router.post(route('tasks.decline', task.id), {
+            reason: trimmed,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsDeclining(false);
+                setIsDeclineModalOpen(false);
+                setDeclineReason('');
+            },
+            onError: (errs) => {
+                setIsDeclining(false);
+                setDeclineError((Object.values(errs)[0] as string) || 'An error occurred while declining the task.');
+            },
+        });
     };
 
     const handleSaveTask = (e: React.FormEvent) => {
@@ -984,19 +1022,43 @@ export default function TaskDetailModal({
 
                                         {/* Acknowledge Alert */}
                                         {!readOnly && isAssignee && !hasAcknowledged && (
-                                            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-amber-800">
-                                                            You are assigned to this task. Please acknowledge receipt.
-                                                        </p>
+                                            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-2xl shadow-xs">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                    <div className="flex items-start gap-2.5">
+                                                        <div className="p-1 rounded-full bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-amber-900">
+                                                                Task Assignment Pending Acknowledgement
+                                                            </p>
+                                                            <p className="text-xs text-amber-700 mt-0.5">
+                                                                You have been assigned to this task. Please acknowledge receipt to accept it, or decline if you cannot take it.
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <button
-                                                        onClick={acknowledgeTask}
-                                                        className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 px-4 rounded-xl shadow-xs transition-colors shrink-0 ml-4"
-                                                    >
-                                                        Acknowledge Task
-                                                    </button>
+                                                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setDeclineError('');
+                                                                setDeclineReason('');
+                                                                setIsDeclineModalOpen(true);
+                                                            }}
+                                                            className="text-xs bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-semibold py-1.5 px-3.5 rounded-xl shadow-2xs hover:border-rose-400 transition-colors cursor-pointer"
+                                                        >
+                                                            Decline Task
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={acknowledgeTask}
+                                                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+                                                        >
+                                                            Acknowledge Task
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -1514,8 +1576,14 @@ export default function TaskDetailModal({
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <span className="text-sm font-semibold text-slate-900">{history.employee_name}</span>
                                                     {history.employee_number && <span className="text-xs text-slate-400">{history.employee_number}</span>}
-                                                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${history.unassigned_at ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700'}`}>
-                                                        {history.unassigned_at ? 'Removed' : 'Assigned'}
+                                                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                                        history.declined_at
+                                                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                                            : history.unassigned_at
+                                                            ? 'bg-slate-100 text-slate-600'
+                                                            : 'bg-emerald-50 text-emerald-700'
+                                                    }`}>
+                                                        {history.declined_at ? 'Declined' : history.unassigned_at ? 'Removed' : 'Assigned'}
                                                     </span>
                                                     {history.source === 'backfill' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800" title="Imported from current known assignment; original assignment details may be unavailable.">Imported*</span>}
                                                 </div>
@@ -1523,9 +1591,15 @@ export default function TaskDetailModal({
                                                     <span>Department at assignment: <strong>{history.department_name || 'Unknown'}</strong></span>
                                                     <span>Assigned by: {history.assigned_by || 'Unknown'}</span>
                                                     <span>Assigned: {formatDateTime(history.assigned_at)}</span>
-                                                    <span>Acknowledged: {history.acknowledged_at ? formatDateTime(history.acknowledged_at) : 'Pending'}</span>
-                                                    {history.unassigned_at && <span>Unassigned: {formatDateTime(history.unassigned_at)}</span>}
+                                                    <span>Acknowledged: {history.acknowledged_at ? formatDateTime(history.acknowledged_at) : (history.declined_at ? 'Declined' : 'Pending')}</span>
+                                                    {history.unassigned_at && !history.declined_at && <span>Unassigned: {formatDateTime(history.unassigned_at)}</span>}
+                                                    {history.declined_at && <span>Declined: {formatDateTime(history.declined_at)}</span>}
                                                 </div>
+                                                {history.declined_at && (
+                                                    <div className="mt-2.5 p-2.5 rounded-lg bg-rose-50/70 border border-rose-200 text-xs text-rose-800">
+                                                        <span className="font-bold">Decline Reason:</span> {history.decline_reason || 'No reason provided'}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                         {assignmentHistory.length === 0 && <p className="rounded-lg bg-white p-4 text-sm text-slate-500">No assignment history for this department.</p>}
@@ -1536,6 +1610,78 @@ export default function TaskDetailModal({
                     </div>
                 </div>
             </div>
+
+            {/* Decline Task Modal */}
+            {isDeclineModalOpen && (
+                <div className="fixed inset-0 z-[60] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-bold text-slate-900">Decline Task Assignment</h3>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    Please provide a reason why you are unable to accept this task. The task creator will be notified.
+                                </p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleDeclineTask} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Reason for Declining <span className="text-rose-500">*</span>
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    value={declineReason}
+                                    onChange={(e) => {
+                                        setDeclineReason(e.target.value);
+                                        if (declineError) setDeclineError('');
+                                    }}
+                                    placeholder="Explain why you are declining this task (e.g., current workload, out of scope, on leave)..."
+                                    className="w-full text-xs sm:text-sm rounded-xl border border-slate-300 shadow-2xs focus:border-rose-500 focus:ring-1 focus:ring-rose-500 p-3 placeholder:text-slate-400"
+                                    autoFocus
+                                />
+                                {declineError && (
+                                    <p className="text-xs font-medium text-rose-600 mt-1">{declineError}</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsDeclineModalOpen(false);
+                                        setDeclineError('');
+                                        setDeclineReason('');
+                                    }}
+                                    disabled={isDeclining}
+                                    className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isDeclining || !declineReason.trim()}
+                                    className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                                >
+                                    {isDeclining ? (
+                                        <>
+                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>Declining...</span>
+                                        </>
+                                    ) : (
+                                        <span>Confirm Decline</span>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Task Revision Modal */}
             {showRevisionModal && (

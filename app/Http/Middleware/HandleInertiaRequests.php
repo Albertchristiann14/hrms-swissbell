@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
                         return [];
                     }
                     \App\Services\TaskDeadlineService::checkAndNotifyForUser($request->user());
+                    \App\Services\TaskAcknowledgementReminderService::checkAndNotifyForUser($request->user());
                     return $request->user()->unreadNotifications()->latest()->take(10)->get();
                 },
             ],

@@ -80,6 +80,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::delete('/checklists/{checklist}', [TaskChecklistController::class, 'destroy'])->name('tasks.checklists.destroy');
 
     Route::post('/tasks/{task}/acknowledge', [TaskController::class, 'acknowledge'])->name('tasks.acknowledge');
+    Route::post('/tasks/{task}/decline', [TaskController::class, 'decline'])->name('tasks.decline');
 
 
 

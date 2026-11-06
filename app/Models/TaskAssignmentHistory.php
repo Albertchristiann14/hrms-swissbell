@@ -19,6 +19,8 @@ class TaskAssignmentHistory extends Model
         'acknowledged_at',
         'reminder_sent_at',
         'unassigned_at',
+        'declined_at',
+        'decline_reason',
         'source',
     ];
 
@@ -27,6 +29,7 @@ class TaskAssignmentHistory extends Model
         'acknowledged_at' => 'datetime',
         'reminder_sent_at' => 'datetime',
         'unassigned_at' => 'datetime',
+        'declined_at' => 'datetime',
     ];
 
     public function task(): BelongsTo

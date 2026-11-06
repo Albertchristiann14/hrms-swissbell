@@ -137,6 +137,8 @@ class DepartmentTaskHistoryController extends Controller
                     'assigned_at' => $history->assigned_at,
                     'acknowledged_at' => $history->acknowledged_at,
                     'unassigned_at' => $history->unassigned_at,
+                    'declined_at' => $history->declined_at,
+                    'decline_reason' => $history->decline_reason,
                     'source' => $history->source,
                 ])->values(),
             ]);

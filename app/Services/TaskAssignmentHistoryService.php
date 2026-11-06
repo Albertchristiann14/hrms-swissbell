@@ -84,4 +84,64 @@ class TaskAssignmentHistoryService
             return true;
         });
     }
+
+    /**
+     * Decline task assignment with a mandatory reason.
+     * Detaches the active assignee, updates history with decline reason and unassigned_at timestamp,
+     * logs task activity, adds a comment, and notifies the task creator.
+     */
+    public function decline(Task $task, Employee $employee, string $reason, ?DateTimeInterface $at = null): bool
+    {
+        return DB::transaction(function () use ($task, $employee, $reason, $at): bool {
+            Task::whereKey($task->id)->lockForUpdate()->firstOrFail();
+
+            // Verify active assignment that has not yet been acknowledged
+            $isAssigned = DB::table('task_assignees')
+                ->where('task_id', $task->id)
+                ->where('employee_id', $employee->id)
+                ->whereNull('acknowledged_at')
+                ->exists();
+
+            if (! $isAssigned) {
+                return false;
+            }
+
+            // Detach active assignee from task
+            $task->assignees()->detach($employee->id);
+
+            $declinedAt = $at ?? now();
+
+            // Update assignment history snapshot
+            $task->assignmentHistories()
+                ->where('employee_id', $employee->id)
+                ->whereNull('unassigned_at')
+                ->whereNull('acknowledged_at')
+                ->update([
+                    'unassigned_at' => $declinedAt,
+                    'declined_at' => $declinedAt,
+                    'decline_reason' => $reason,
+                ]);
+
+            // Record task activity in English
+            $task->activities()->create([
+                'employee_id' => $employee->id,
+                'action' => 'task_declined',
+                'description' => "Declined task assignment. Reason: {$reason}",
+            ]);
+
+            // Add discussion comment so team has immediate context
+            $task->comments()->create([
+                'employee_id' => $employee->id,
+                'content' => "❌ **Task Assignment Declined**\nReason: {$reason}",
+            ]);
+
+            // Notify task creator if available
+            $task->load('creator');
+            if ($task->creator && $task->creator->id !== $employee->user_id) {
+                $task->creator->notify(new \App\Notifications\TaskAssignmentDeclined($task, $employee, $reason));
+            }
+
+            return true;
+        });
+    }
 }
