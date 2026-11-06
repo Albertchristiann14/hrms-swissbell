@@ -16,6 +16,7 @@
 
 .animate-indeterminate {
     animation: indeterminate 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    will-change: transform;
 }
 
 @keyframes fadeIn {
@@ -31,4 +32,20 @@
 
 .animate-fadeIn {
     animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: opacity, transform;
+}
+
+/* GPU Composited animations to eliminate main-thread style/layout thrashing */
+.animate-pulse {
+    will-change: opacity;
+}
+
+.animate-spin {
+    will-change: transform;
+}
+
+/* Content visibility optimization for heavy cards & offscreen lists */
+.cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 100px;
 }

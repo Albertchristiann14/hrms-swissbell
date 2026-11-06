@@ -201,7 +201,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                                 return (
                                                     <tr 
                                                         key={task.id} 
-                                                        className={`hover:bg-slate-50/80 transition-colors ${
+                                                        className={`hover:bg-slate-50/80 transition-colors cv-auto ${
                                                             isLate ? 'border-l-4 border-l-red-500 bg-red-50/20' : ''
                                                         }`}
                                                     >

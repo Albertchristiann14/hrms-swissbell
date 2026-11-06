@@ -130,7 +130,7 @@ export default function Authenticated({
 }: PropsWithChildren<{ header?: ReactNode; user?: any; hideSidebar?: boolean }>) {
     const updateChrome = useContext(PersistentChromeContext);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         updateChrome?.({ header, hideSidebar });
     }, [updateChrome, header, hideSidebar]);
 
@@ -577,13 +577,17 @@ function AuthenticatedShell({
     const mobileMenuRef = useRef<HTMLDivElement>(null);
 
     // Inertia already performs SPA navigation, but a page-owned layout remount
-    // used to throw the sidebar back to the top. Restore before browser paint.
-    useLayoutEffect(() => {
+    // used to throw the sidebar back to the top. Restore smoothly without blocking paint.
+    useEffect(() => {
         const restore = (element: HTMLDivElement | null, kind: 'desktop' | 'mobile') => {
             if (!element) return;
             try {
                 const stored = sessionStorage.getItem(`sipu_nav_scroll_${kind}_${activeModuleInfo.key}`);
-                element.scrollTop = stored ? Math.max(0, Number(stored) || 0) : 0;
+                if (stored) {
+                    requestAnimationFrame(() => {
+                        if (element) element.scrollTop = Math.max(0, Number(stored) || 0);
+                    });
+                }
             } catch {
                 // Use the native scroll position if session storage is unavailable.
             }

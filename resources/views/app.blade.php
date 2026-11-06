@@ -30,27 +30,5 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
-        
-        <script>
-            // Clean up and unregister any legacy service workers that cause fetch event rejections
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for (let registration of registrations) {
-                            registration.unregister().then(function(boolean) {
-                                console.log('Legacy ServiceWorker unregistered: ', boolean);
-                            });
-                        }
-                    });
-                    if (window.caches) {
-                        caches.keys().then(function(names) {
-                            for (let name of names) {
-                                caches.delete(name);
-                            }
-                        });
-                    }
-                });
-            }
-        </script>
     </body>
 </html>

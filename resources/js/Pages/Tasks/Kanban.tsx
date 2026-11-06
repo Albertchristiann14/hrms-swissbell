@@ -413,7 +413,7 @@ export default function Kanban({ auth, tasks, statuses, priorities, employees, p
                                                         setSelectedTask(task);
                                                     }
                                                 }}
-                                                className={`group bg-white rounded-xl shadow-xs border transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
+                                                className={`group cv-auto bg-white rounded-xl shadow-xs border transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
                                                     isBeingDragged
                                                         ? 'opacity-30 scale-95 border-dashed border-2 border-red-400 bg-red-50/50 rotate-1 shadow-inner'
                                                         : 'hover:shadow-md hover:-translate-y-0.5 border-slate-200 hover:border-red-300'
