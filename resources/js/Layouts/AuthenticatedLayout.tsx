@@ -1003,7 +1003,7 @@ function AuthenticatedShell({
                                                             </div>
                                                         )}
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-xs text-slate-800 leading-snug font-medium line-clamp-2 hover:text-[#E31B23] transition-colors">{notif.data.message}</p>
+                                                            <p className="text-xs text-slate-800 leading-snug font-medium line-clamp-2 hover:text-[#E31B23] transition-colors">{notif.data?.message || notif.data?.title || 'New notification'}</p>
                                                             <div className="flex items-center gap-1.5 mt-1">
                                                                 {isMention && (
                                                                     <span className="text-[9px] bg-red-100 text-[#E31B23] font-semibold px-1 rounded">
@@ -1021,7 +1021,7 @@ function AuthenticatedShell({
                                                         key={notif.id}
                                                         className={`px-3.5 py-3 hover:bg-slate-50 transition-colors flex items-start justify-between gap-2.5 ${isMention ? 'bg-red-50/30' : ''}`}
                                                     >
-                                                        {notif.data.action_url ? (
+                                                        {notif.data?.action_url ? (
                                                             <Link href={notif.data.action_url} className="flex items-start gap-2.5 flex-1 min-w-0">
                                                                 {notificationBody}
                                                             </Link>

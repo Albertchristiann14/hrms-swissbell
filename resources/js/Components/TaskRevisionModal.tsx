@@ -28,6 +28,17 @@ export default function TaskRevisionModal({ task, show, onClose, onSuccess }: Ta
         }
     }, [task, show]);
 
+    useEffect(() => {
+        if (!show) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isSubmitting) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [show, isSubmitting, onClose]);
+
     if (!show || !task) return null;
 
     const handleSubmit = (e: React.FormEvent) => {

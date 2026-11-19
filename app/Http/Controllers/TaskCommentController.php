@@ -83,12 +83,22 @@ class TaskCommentController extends Controller
             ->map(fn($id) => (int)$id)
             ->all();
 
-        // Also auto-detect any @Name mentioned in the text
-        if (!empty($content)) {
-            $allUsers = \App\Models\User::select('id', 'name')->get();
-            foreach ($allUsers as $u) {
-                if (stripos($content, '@' . $u->name) !== false) {
-                    $taggedUserIds[] = (int)$u->id;
+        // Auto-detect any @Name or @username mentioned in the text using regex
+        if (!empty($content) && str_contains($content, '@')) {
+            preg_match_all('/@([a-zA-Z0-9_.\-]+(?:\s+[a-zA-Z0-9_.\-]+)?)/u', $content, $matches);
+            $rawCandidates = array_unique(array_filter(array_map('trim', $matches[1] ?? [])));
+            if (!empty($rawCandidates)) {
+                $matchedUserIds = \App\Models\User::query()
+                    ->where(function ($query) use ($rawCandidates) {
+                        foreach ($rawCandidates as $cand) {
+                            $query->orWhereRaw('LOWER(name) = ?', [mb_strtolower($cand)])
+                                  ->orWhereRaw('LOWER(username) = ?', [mb_strtolower($cand)]);
+                        }
+                    })
+                    ->pluck('id')
+                    ->all();
+                foreach ($matchedUserIds as $uId) {
+                    $taggedUserIds[] = (int) $uId;
                 }
             }
         }
@@ -120,7 +130,8 @@ class TaskCommentController extends Controller
 
         $comment = $task->comments()->create($commentData);
 
-        // Send notification to tagged users
+        // Send notification to tagged users and prepare activity name string
+        $taggedNames = null;
         if (!empty($taggedUserIds)) {
             $usersToNotify = \App\Models\User::whereIn('id', $taggedUserIds)->get();
             if ($usersToNotify->isNotEmpty()) {
@@ -132,12 +143,9 @@ class TaskCommentController extends Controller
                 } catch (\Throwable $e) {
                     \Illuminate\Support\Facades\Log::warning('Failed to dispatch comment mention notification: ' . $e->getMessage());
                 }
+                $taggedNames = $usersToNotify->pluck('name')->implode(', ');
             }
         }
-
-        $taggedNames = !empty($taggedUserIds) 
-            ? \App\Models\User::whereIn('id', $taggedUserIds)->pluck('name')->implode(', ')
-            : null;
 
         $descContent = !empty($content) ? '"' . \Illuminate\Support\Str::limit($content, 40) . '"' : '';
         $fileInfo = $hasFile ? '(Attached: ' . $commentData['file_name'] . ')' : '';

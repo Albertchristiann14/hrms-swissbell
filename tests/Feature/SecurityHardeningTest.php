@@ -9,8 +9,10 @@ use App\Models\Attendance;
 use App\Models\Department;
 use App\Models\Document;
 use App\Models\Employee;
+use App\Models\ItTicket;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskChecklist;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -307,5 +309,140 @@ class SecurityHardeningTest extends TestCase
         // HR employee can download HR document
         $responseHr = $this->actingAs($hrUser)->get("/documents/{$document->id}/download");
         $responseHr->assertStatus(200);
+    }
+
+    public function test_unauthorized_user_cannot_manipulate_task_checklists(): void
+    {
+        $creator = User::factory()->create();
+        $creator->assignRole('Staff');
+        $creatorEmp = Employee::create([
+            'user_id' => $creator->id,
+            'employee_number' => 'EMP-CR-01',
+            'first_name' => 'Creator',
+            'last_name' => 'User',
+            'email' => $creator->email,
+            'hire_date' => now(),
+            'status' => 'active',
+        ]);
+
+        $unauthorizedUser = User::factory()->create();
+        $unauthorizedUser->assignRole('Staff');
+        $unauthEmp = Employee::create([
+            'user_id' => $unauthorizedUser->id,
+            'employee_number' => 'EMP-UN-01',
+            'first_name' => 'Unauthorized',
+            'last_name' => 'User',
+            'email' => $unauthorizedUser->email,
+            'hire_date' => now(),
+            'status' => 'active',
+        ]);
+
+        $task = Task::create([
+            'title' => 'Confidential Task',
+            'created_by' => $creator->id,
+            'priority' => TaskPriority::High->value,
+            'status' => TaskStatus::InProgress->value,
+        ]);
+        $task->assignees()->attach($creatorEmp->id);
+
+        $checklist = TaskChecklist::create([
+            'task_id' => $task->id,
+            'title' => 'Initial Checklist Item',
+            'is_completed' => false,
+        ]);
+
+        // 1. Unauthorized user cannot add checklist item
+        $storeResp = $this->actingAs($unauthorizedUser)->post("/tasks/{$task->id}/checklists", [
+            'title' => 'Hacked Item',
+        ]);
+        $storeResp->assertStatus(403);
+        $this->assertDatabaseMissing('task_checklists', ['title' => 'Hacked Item']);
+
+        // 2. Unauthorized user cannot update checklist item
+        $updateResp = $this->actingAs($unauthorizedUser)->put("/checklists/{$checklist->id}", [
+            'is_completed' => true,
+        ]);
+        $updateResp->assertStatus(403);
+        $this->assertFalse((bool) $checklist->fresh()->is_completed);
+
+        // 3. Unauthorized user cannot delete checklist item
+        $deleteResp = $this->actingAs($unauthorizedUser)->delete("/checklists/{$checklist->id}");
+        $deleteResp->assertStatus(403);
+        $this->assertDatabaseHas('task_checklists', ['id' => $checklist->id]);
+
+        // 4. Authorized user (creator/assignee) can update and delete
+        $validUpdateResp = $this->actingAs($creator)->put("/checklists/{$checklist->id}", [
+            'is_completed' => true,
+        ]);
+        $validUpdateResp->assertRedirect();
+        $this->assertTrue((bool) $checklist->fresh()->is_completed);
+
+        $validDeleteResp = $this->actingAs($creator)->delete("/checklists/{$checklist->id}");
+        $validDeleteResp->assertRedirect();
+        $this->assertDatabaseMissing('task_checklists', ['id' => $checklist->id]);
+    }
+
+    public function test_non_it_ticket_reporter_cannot_arbitrarily_change_ticket_status(): void
+    {
+        $reporterUser = User::factory()->create();
+        $reporterUser->assignRole('Staff');
+        $reporterEmp = Employee::create([
+            'user_id' => $reporterUser->id,
+            'employee_number' => 'EMP-REP-01',
+            'first_name' => 'Reporter',
+            'last_name' => 'User',
+            'email' => $reporterUser->email,
+            'hire_date' => now(),
+            'status' => 'active',
+        ]);
+
+        $ticket = ItTicket::create([
+            'ticket_number' => 'IT-202611-0001',
+            'reported_by_employee_id' => $reporterEmp->id,
+            'title' => 'Printer Issue',
+            'description' => 'Cannot print document',
+            'category' => 'Hardware',
+            'priority' => 'Medium',
+            'status' => 'Open',
+        ]);
+
+        // Reporter tries to set status to 'In Progress' or 'Resolved' directly -> 403 Forbidden
+        $response = $this->actingAs($reporterUser)->patch("/it/tickets/{$ticket->id}/status", [
+            'status' => 'In Progress',
+        ]);
+        $response->assertStatus(403);
+        $this->assertSame('Open', $ticket->fresh()->status);
+
+        // Ticket is resolved by IT
+        $ticket->update(['status' => 'Resolved']);
+
+        // Reporter can now close the resolved ticket -> 302 redirect
+        $closeResponse = $this->actingAs($reporterUser)->patch("/it/tickets/{$ticket->id}/status", [
+            'status' => 'Closed',
+        ]);
+        $closeResponse->assertRedirect();
+        $this->assertSame('Closed', $ticket->fresh()->status);
+    }
+
+    public function test_system_run_migrations_rejects_get_and_requires_post_by_super_admin(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('Super Admin');
+
+        $staff = User::factory()->create();
+        $staff->assignRole('Staff');
+
+        // GET request is rejected with 405 Method Not Allowed
+        $getResp = $this->actingAs($admin)->get('/system/run-migrations');
+        $getResp->assertStatus(405);
+
+        // POST by non-admin is 403 Forbidden
+        $staffPost = $this->actingAs($staff)->post('/system/run-migrations');
+        $staffPost->assertStatus(403);
+
+        // POST by Super Admin succeeds
+        $adminPost = $this->actingAs($admin)->post('/system/run-migrations');
+        $adminPost->assertStatus(200);
+        $adminPost->assertJson(['status' => 'success']);
     }
 }

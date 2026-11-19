@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -552,7 +553,11 @@ class PowerProRequestController extends Controller
                 $approver->notify(new PowerProStatusNotification($request, $type));
             }
         } catch (\Throwable $e) {
-            // Silently continue
+            Log::warning("Failed to notify HOD approvers for PowerPro request {$request->request_number}: {$e->getMessage()}", [
+                'request_id' => $request->id,
+                'type' => $type,
+                'exception' => $e,
+            ]);
         }
     }
 
@@ -577,7 +582,11 @@ class PowerProRequestController extends Controller
                 $itUser->notify(new PowerProStatusNotification($request, $type));
             }
         } catch (\Throwable $e) {
-            // Silently continue
+            Log::warning("Failed to notify IT staff for PowerPro request {$request->request_number}: {$e->getMessage()}", [
+                'request_id' => $request->id,
+                'type' => $type,
+                'exception' => $e,
+            ]);
         }
     }
 
@@ -602,7 +611,11 @@ class PowerProRequestController extends Controller
                 $recipient->notify(new PowerProStatusNotification($request, $type));
             });
         } catch (\Throwable $e) {
-            // Silently continue
+            Log::warning("Failed to notify requester/employee for PowerPro request {$request->request_number}: {$e->getMessage()}", [
+                'request_id' => $request->id,
+                'type' => $type,
+                'exception' => $e,
+            ]);
         }
     }
 }

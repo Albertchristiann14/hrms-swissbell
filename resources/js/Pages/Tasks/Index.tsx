@@ -180,7 +180,7 @@ export default function Index({ auth, tasks, employees, statuses, priorities, fi
                                 </h3>
                             </div>
                             
-                            {tasks.length > 0 ? (
+                            {sortedTasks.length > 0 ? (
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full divide-y divide-slate-200">
                                         <thead className="bg-slate-50">

@@ -164,7 +164,7 @@ export default function PerformanceShow({ employee, period, score, assessment, t
                                 <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
                                     <div>
                                         <h4 className="text-base font-semibold text-slate-900">Tasks Evaluated in this Period ({tasks.length})</h4>
-                                        <p className="text-xs text-slate-500 mt-0.5">Only tasks with status "Done" AND acknowledged receipt count as completed tasks.</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">Only tasks with status "Approved" AND acknowledged receipt count as completed tasks.</p>
                                     </div>
                                 </div>
 
@@ -186,8 +186,10 @@ export default function PerformanceShow({ employee, period, score, assessment, t
                                             <tbody className="divide-y divide-slate-100 bg-white">
                                                 {tasks.map((task: any) => {
                                                     const isAck = !!task.pivot?.acknowledged_at;
-                                                    const isDone = (task.status?.value || task.status) === 'Done';
-                                                    const getsCredit = isDone && isAck;
+                                                    const statusVal = task.status?.value || task.status;
+                                                    const isApproved = statusVal === 'Approved';
+                                                    const isDone = statusVal === 'Done';
+                                                    const getsCredit = isApproved && isAck;
 
                                                     return (
                                                         <tr key={task.id} className="hover:bg-slate-50/50">
@@ -208,8 +210,8 @@ export default function PerformanceShow({ employee, period, score, assessment, t
                                                                 </Badge>
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
-                                                                <Badge variant={isDone ? 'success' : 'info'} dot>
-                                                                    {task.status?.value || task.status}
+                                                                <Badge variant={isApproved ? 'success' : isDone ? 'warning' : 'info'} dot>
+                                                                    {statusVal}
                                                                 </Badge>
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
@@ -228,9 +230,13 @@ export default function PerformanceShow({ employee, period, score, assessment, t
                                                                     <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
                                                                         +1 Completed
                                                                     </span>
-                                                                ) : isDone && !isAck ? (
-                                                                    <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full" title="Task completed but receipt was never acknowledged">
+                                                                ) : (isApproved || isDone) && !isAck ? (
+                                                                    <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full" title="Task finished but receipt was never acknowledged">
                                                                         Not Counted (Unacknowledged)
+                                                                    </span>
+                                                                ) : isDone && isAck ? (
+                                                                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full" title="Task marked as done by assignee, awaiting assigner approval">
+                                                                        Awaiting Approval
                                                                     </span>
                                                                 ) : (
                                                                     <span className="text-xs text-slate-400">

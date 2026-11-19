@@ -140,10 +140,10 @@ export default function Dashboard({
     const [shortcutModalSearch, setShortcutModalSearch] = useState('');
     const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
 
-    // Listen for Ctrl+K / Cmd+K shortcut
+    // Listen for '/' shortcut to focus desk search (avoiding collision with Ctrl+K Global Search)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
                 e.preventDefault();
                 searchInputRef.current?.focus();
             } else if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
@@ -1197,8 +1197,7 @@ export default function Dashboard({
                             </button>
                         ) : (
                             <div className="absolute right-3 hidden sm:flex items-center gap-1 pointer-events-none">
-                                <kbd className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 rounded shadow-2xs">Ctrl</kbd>
-                                <kbd className="px-1 py-0.5 text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 rounded shadow-2xs">K</kbd>
+                                <kbd className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 rounded shadow-2xs">/</kbd>
                             </div>
                         )}
                     </div>

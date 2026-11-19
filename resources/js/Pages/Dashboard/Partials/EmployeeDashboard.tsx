@@ -386,37 +386,44 @@ export default function EmployeeDashboard({ data }: { data: any }) {
                     </h3>
                 </div>
                 <div className="p-6 flex justify-center items-center h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={[
-                                    { name: 'To Do', value: summary.todo, color: '#64748b' },
-                                    { name: 'In Progress', value: summary.in_progress, color: '#3b82f6' },
-                                    { name: 'Review', value: summary.review, color: '#f59e0b' },
-                                    { name: 'Completed', value: summary.done, color: '#10b981' },
-                                ].filter(d => d.value > 0)}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {
-                                    [
+                    {((summary.todo || 0) + (summary.in_progress || 0) + (summary.review || 0) + (summary.done || 0)) > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={[
                                         { name: 'To Do', value: summary.todo, color: '#64748b' },
                                         { name: 'In Progress', value: summary.in_progress, color: '#3b82f6' },
                                         { name: 'Review', value: summary.review, color: '#f59e0b' },
                                         { name: 'Completed', value: summary.done, color: '#10b981' },
-                                    ].filter(d => d.value > 0).map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))
-                                }
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} tasks`, 'Count']} />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                                    ].filter(d => d.value > 0)}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {
+                                        [
+                                            { name: 'To Do', value: summary.todo, color: '#64748b' },
+                                            { name: 'In Progress', value: summary.in_progress, color: '#3b82f6' },
+                                            { name: 'Review', value: summary.review, color: '#f59e0b' },
+                                            { name: 'Completed', value: summary.done, color: '#10b981' },
+                                        ].filter(d => d.value > 0).map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))
+                                    }
+                                </Pie>
+                                <Tooltip formatter={(value) => [`${value} tasks`, 'Count']} />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="text-center py-6">
+                            <p className="text-sm text-gray-400">No task data available.</p>
+                            <p className="text-xs text-gray-300 mt-1">Tasks assigned to you will be charted here.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

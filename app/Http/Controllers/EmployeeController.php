@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -156,36 +157,38 @@ class EmployeeController extends Controller
             $counter++;
         }
 
-        // Create user account
-        $user = User::create([
-            'name' => $validated['name'],
-            'username' => $candidateUsername,
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'status' => 'active',
-            'email_verified_at' => now(),
-            'terms_accepted_at' => now(),
-        ]);
-        $user->assignRole($validated['role']);
+        DB::transaction(function () use ($validated, $candidateUsername) {
+            // Create user account
+            $user = User::create([
+                'name' => $validated['name'],
+                'username' => $candidateUsername,
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'terms_accepted_at' => now(),
+            ]);
+            $user->assignRole($validated['role']);
 
-        // Create employee record
-        $employee = Employee::create([
-            'user_id' => $user->id,
-            'employee_number' => $validated['employee_number'],
-            'phone_number' => $validated['phone_number'] ?? null,
-            'department_id' => $validated['department_id'] ?? null,
-            'position_id' => $validated['position_id'] ?? null,
-            'supervisor_id' => $validated['supervisor_id'] ?? null,
-            'join_date' => $validated['join_date'] ?? now(),
-            'employment_status' => $validated['employment_status'],
-        ]);
+            // Create employee record
+            $employee = Employee::create([
+                'user_id' => $user->id,
+                'employee_number' => $validated['employee_number'],
+                'phone_number' => $validated['phone_number'] ?? null,
+                'department_id' => $validated['department_id'] ?? null,
+                'position_id' => $validated['position_id'] ?? null,
+                'supervisor_id' => $validated['supervisor_id'] ?? null,
+                'join_date' => $validated['join_date'] ?? now(),
+                'employment_status' => $validated['employment_status'],
+            ]);
 
-        AuditLog::log([
-            'action' => 'created',
-            'model_type' => 'Employee',
-            'model_id' => $employee->id,
-            'description' => 'Created employee: '.$validated['name'].' ('.$validated['employee_number'].')',
-        ]);
+            AuditLog::log([
+                'action' => 'created',
+                'model_type' => 'Employee',
+                'model_id' => $employee->id,
+                'description' => 'Created employee: '.$validated['name'].' ('.$validated['employee_number'].')',
+            ]);
+        });
 
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }

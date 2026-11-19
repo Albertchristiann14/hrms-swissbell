@@ -230,7 +230,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/settings', function () {
             return Inertia::render('Administration/Settings');
         })->name('settings.index');
-        Route::get('/system/run-migrations', function () {
+        Route::post('/system/run-migrations', function () {
             try {
                 \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
                 $output = \Illuminate\Support\Facades\Artisan::output();

@@ -22,7 +22,7 @@ const GLOBAL_SEARCH_CATALOG: SearchItem[] = [
     { id: 'hr-employees', title: 'Daftar Karyawan (Staff Directory)', description: 'Direktori staf hotel, jabatan, dan departemen', category: 'Human Resources', href: '/employees' },
     { id: 'hr-leaves', title: 'Pengajuan Cuti (Leave Requests)', description: 'Kelola permohonan cuti tahunan dan cuti sakit', category: 'Human Resources', href: '/leave' },
     { id: 'hr-overtime', title: 'Lembur / SPKL (Overtime)', description: 'Surat Perintah Kerja Lembur dan perhitungan jam', category: 'Human Resources', href: '/overtime' },
-    { id: 'hr-payroll', title: 'Slip Gaji (My Payslips)', description: 'Arsip slip gaji dan rincian take home pay', category: 'Human Resources', href: '/payroll/my-payslips' },
+    { id: 'hr-payroll', title: 'Slip Gaji (My Payslips)', description: 'Arsip slip gaji dan rincian take home pay', category: 'Human Resources', href: '/my-payslips' },
     { id: 'hr-shifts', title: 'Shift Roster (Scheduler)', description: 'Jadwal giliran kerja mingguan karyawan', category: 'Human Resources', href: '/schedules' },
 
     // IT Operations

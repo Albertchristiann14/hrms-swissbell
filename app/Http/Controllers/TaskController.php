@@ -29,11 +29,9 @@ class TaskController extends Controller
             'activities.employee.user:id,name'
         ]);
 
-        // Access scope:
-        // Super Admin, General Manager, HRD / Admin see all hotel tasks.
-        // Supervisors & Head of Department see all tasks in their department or assigned to them.
-        // Other staff see assigned tasks, created tasks, or tasks in their department.
-        if (! $user->hasAnyRole(['Super Admin', 'General Manager', 'HRD / Admin'])) {
+        // "My Tasks" should only show tasks assigned to the user, created by the user, or within their department,
+        // unless the user is Super Admin who has global oversight.
+        if (! $user->hasRole('Super Admin')) {
             $query->where(function ($q) use ($user, $employee) {
                 if ($employee) {
                     $q->whereHas('assignees', function ($sq) use ($employee) {

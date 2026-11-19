@@ -95,17 +95,33 @@ export function getDeadlineStatus(
     }
 
     // 2. Uncompleted Task Cases
+    // Check if due is today in Asia/Jakarta timezone FIRST before diffMs < 0
+    // Date-only deadlines (e.g. "2026-11-19") parse to UTC 00:00 (07:00 WIB) and must remain "Due today" all day
+    const isToday = formatDate(due) === formatDate(now);
+    if (isToday) {
+        return {
+            type: 'today',
+            label: 'Due today',
+            variant: 'warning',
+            isOverdue: false,
+            isCompleted: false,
+            dueDateFormatted,
+            dueDateTimeFormatted,
+            diffDays: 0,
+            diffHours: Math.floor((due.getTime() - now.getTime()) / (60 * 60 * 1000)),
+            explanation: `The deadline for this task is today.`,
+        };
+    }
+
     const diffMs = due.getTime() - now.getTime();
 
-    // Past deadline (Overdue)
+    // Past deadline (Overdue - yesterday or earlier)
     if (diffMs < 0) {
         const absDiffMs = Math.abs(diffMs);
         const hoursOverdue = Math.floor(absDiffMs / (60 * 60 * 1000));
-        const daysOverdue = Math.floor(absDiffMs / (24 * 60 * 60 * 1000));
+        const daysOverdue = Math.max(1, Math.floor(absDiffMs / (24 * 60 * 60 * 1000)));
 
-        const label = daysOverdue < 1 
-            ? `${Math.max(1, hoursOverdue)} hour${hoursOverdue > 1 ? 's' : ''} overdue` 
-            : `${daysOverdue} day${daysOverdue > 1 ? 's' : ''} overdue`;
+        const label = `${daysOverdue} day${daysOverdue > 1 ? 's' : ''} overdue`;
 
         return {
             type: 'overdue',
@@ -121,25 +137,8 @@ export function getDeadlineStatus(
         };
     }
 
-    // Check if due is today in Asia/Jakarta timezone
-    const isToday = formatDate(due) === formatDate(now);
-    if (isToday) {
-        return {
-            type: 'today',
-            label: 'Due today',
-            variant: 'warning',
-            isOverdue: false,
-            isCompleted: false,
-            dueDateFormatted,
-            dueDateTimeFormatted,
-            diffDays: 0,
-            diffHours: Math.floor(diffMs / (60 * 60 * 1000)),
-            explanation: `The deadline for this task is today at ${formatTime(due)}.`,
-        };
-    }
-
     // Calculate days left
-    const daysLeft = Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+    const daysLeft = Math.max(1, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
 
     if (daysLeft >= 1 && daysLeft <= 3) {
         return {
@@ -174,11 +173,9 @@ export function getDeadlineStatus(
  * Sort tasks with overdue items first (oldest overdue first),
  * followed by due today, then upcoming nearest deadline, then tasks with no deadline.
  */
-export function sortTasksByDeadlineAndOverdue<T extends { deadline?: string | Date | null; status?: string | null }>(
+export function sortTasksByDeadlineAndOverdue<T extends { deadline?: string | Date | null; status?: string | null; completed_at?: string | Date | null }>(
     tasks: T[]
 ): T[] {
-    const now = new Date().getTime();
-
     return [...tasks].sort((a, b) => {
         const deadA = a.deadline ? new Date(a.deadline).getTime() : null;
         const deadB = b.deadline ? new Date(b.deadline).getTime() : null;
@@ -188,8 +185,11 @@ export function sortTasksByDeadlineAndOverdue<T extends { deadline?: string | Da
         if (deadA === null) return 1;
         if (deadB === null) return -1;
 
-        const isOverdueA = deadA < now && !isTaskCompleted(a.status);
-        const isOverdueB = deadB < now && !isTaskCompleted(b.status);
+        const statA = getDeadlineStatus(a.deadline, a.status, a.completed_at);
+        const statB = getDeadlineStatus(b.deadline, b.status, b.completed_at);
+
+        const isOverdueA = Boolean(statA?.isOverdue && !statA?.isCompleted);
+        const isOverdueB = Boolean(statB?.isOverdue && !statB?.isCompleted);
 
         // 1. Both overdue: earliest deadline (longest overdue) comes first
         if (isOverdueA && isOverdueB) {

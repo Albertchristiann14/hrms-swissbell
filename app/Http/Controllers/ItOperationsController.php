@@ -450,6 +450,12 @@ class ItOperationsController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        if (!$isItManager) {
+            if ($validated['status'] !== 'Closed' || $ticket->status !== 'Resolved') {
+                abort(403, 'Akses ditolak: Pelapor hanya dapat menutup tiket yang telah berstatus Resolved.');
+            }
+        }
+
         $oldStatus = $ticket->status;
         $newStatus = $validated['status'];
 

@@ -405,6 +405,22 @@ export default function TaskDetailModal({
     const [declineError, setDeclineError] = useState('');
     const [isDeclining, setIsDeclining] = useState(false);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (isDeclineModalOpen) {
+                    setIsDeclineModalOpen(false);
+                    setDeclineError('');
+                    setDeclineReason('');
+                } else if (!showRevisionModal) {
+                    onClose();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isDeclineModalOpen, showRevisionModal, onClose]);
+
     const handleDeclineTask = (e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = declineReason.trim();
@@ -483,8 +499,12 @@ export default function TaskDetailModal({
         }
     };
 
-    const isAssignee = task.assignees?.some((a: any) => a.user?.id === currentUser?.id);
-    const hasAcknowledged = task.assignees?.find((a: any) => a.user?.id === currentUser?.id)?.pivot?.acknowledged_at !== null;
+    const matchingAssignee = task.assignees?.find((a: any) => 
+        (a.user?.id || a.user_id) === currentUser?.id || 
+        (currentUser?.employee?.id && a.id === currentUser.employee.id)
+    );
+    const isAssignee = Boolean(matchingAssignee);
+    const hasAcknowledged = Boolean(matchingAssignee?.pivot?.acknowledged_at);
 
     const canEditTask = !readOnly && Boolean(
         (task?.created_by && task.created_by === currentUser?.id) ||

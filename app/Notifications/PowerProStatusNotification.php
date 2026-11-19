@@ -4,9 +4,10 @@ namespace App\Notifications;
 
 use App\Models\PowerProRequest;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class PowerProStatusNotification extends Notification
+class PowerProStatusNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
