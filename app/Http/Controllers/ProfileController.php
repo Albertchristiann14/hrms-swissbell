@@ -30,32 +30,26 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        \Log::info('Profile Update Request:', [
-            'hasFile' => $request->hasFile('photo'),
-            'file' => $request->file('photo'),
-            'error' => $request->file('photo') ? $request->file('photo')->getError() : null,
-            'all' => $request->all()
-        ]);
-        
         $validated = $request->validated();
-        $request->user()->fill([
+        $user = $request->user();
+
+        $user->fill([
             'name' => $validated['name'],
             'email' => $validated['email'],
         ]);
 
         if (isset($validated['phone_number'])) {
-            $request->user()->phone_number = $validated['phone_number'];
+            $user->phone_number = $validated['phone_number'];
         }
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
+
+        $oldPhotoPath = $user->profile_photo_path;
+        $newPhotoPath = null;
 
         if ($request->hasFile('photo')) {
-            if ($request->user()->profile_photo_path) {
-                Storage::disk('public')->delete($request->user()->profile_photo_path);
-            }
-
             $file = $request->file('photo');
             $saved = false;
 
@@ -86,7 +80,7 @@ class ProfileController extends Controller
                         imagedestroy($dst);
 
                         Storage::disk('public')->put($path, $optimized);
-                        $request->user()->profile_photo_path = $path;
+                        $newPhotoPath = $path;
                         $saved = true;
                     }
                 } catch (\Throwable $e) {
@@ -95,12 +89,28 @@ class ProfileController extends Controller
             }
 
             if (!$saved) {
-                $path = $file->store('profile-photos', 'public');
-                $request->user()->profile_photo_path = $path;
+                $newPhotoPath = $file->store('profile-photos', 'public');
             }
+
+            $user->profile_photo_path = $newPhotoPath;
         }
 
-        $request->user()->save();
+        try {
+            $user->save();
+
+            // Delete old photo only after new photo and user update successfully saved
+            if ($newPhotoPath && $oldPhotoPath && $oldPhotoPath !== $newPhotoPath) {
+                if (Storage::disk('public')->exists($oldPhotoPath)) {
+                    Storage::disk('public')->delete($oldPhotoPath);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Prevent orphan file if saving user record fails
+            if ($newPhotoPath && Storage::disk('public')->exists($newPhotoPath)) {
+                Storage::disk('public')->delete($newPhotoPath);
+            }
+            throw $e;
+        }
 
         return Redirect::route('profile.edit');
     }
@@ -117,6 +127,10 @@ class ProfileController extends Controller
         $user = $request->user();
 
         Auth::logout();
+
+        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
 
         $user->delete();
 

@@ -253,19 +253,27 @@ class ItOperationsController extends Controller
             'location' => 'nullable|string|max:100',
             'ip_address' => 'nullable|string|max:50',
             'ups' => 'nullable|string|max:150',
-            'photo' => 'nullable|image|max:5120',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'purchase_date' => 'nullable|date',
             'warranty_expiry' => 'nullable|date',
             'purchase_cost' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
 
+        $photoPath = null;
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('it-assets', 'public');
-            $validated['photo'] = $path;
+            $photoPath = $request->file('photo')->store('it-assets', 'public');
+            $validated['photo'] = $photoPath;
         }
 
-        ItAsset::create($validated);
+        try {
+            ItAsset::create($validated);
+        } catch (\Throwable $e) {
+            if ($photoPath && Storage::disk('public')->exists($photoPath)) {
+                Storage::disk('public')->delete($photoPath);
+            }
+            throw $e;
+        }
 
         return back()->with('success', 'Asset IT ' . $validated['asset_code'] . ' berhasil ditambahkan.');
     }
@@ -290,7 +298,7 @@ class ItOperationsController extends Controller
             'location' => 'nullable|string|max:100',
             'ip_address' => 'nullable|string|max:50',
             'ups' => 'nullable|string|max:150',
-            'photo' => 'nullable|image|max:5120',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'remove_photo' => 'nullable|boolean',
             'purchase_date' => 'nullable|date',
             'warranty_expiry' => 'nullable|date',
@@ -298,24 +306,36 @@ class ItOperationsController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $oldPhoto = $asset->photo;
+        $newPhoto = null;
+
         if ($request->boolean('remove_photo')) {
-            if ($asset->photo && Storage::disk('public')->exists($asset->photo)) {
-                Storage::disk('public')->delete($asset->photo);
-            }
             $validated['photo'] = null;
         } elseif ($request->hasFile('photo')) {
-            if ($asset->photo && Storage::disk('public')->exists($asset->photo)) {
-                Storage::disk('public')->delete($asset->photo);
-            }
-            $path = $request->file('photo')->store('it-assets', 'public');
-            $validated['photo'] = $path;
+            $newPhoto = $request->file('photo')->store('it-assets', 'public');
+            $validated['photo'] = $newPhoto;
         } else {
             unset($validated['photo']);
         }
 
         unset($validated['remove_photo']);
 
-        $asset->update($validated);
+        try {
+            $asset->update($validated);
+
+            // Delete old photo only after database update succeeds
+            if ($oldPhoto && ($request->boolean('remove_photo') || $newPhoto)) {
+                if (Storage::disk('public')->exists($oldPhoto)) {
+                    Storage::disk('public')->delete($oldPhoto);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Remove newly uploaded photo if update fails
+            if ($newPhoto && Storage::disk('public')->exists($newPhoto)) {
+                Storage::disk('public')->delete($newPhoto);
+            }
+            throw $e;
+        }
 
         return back()->with('success', 'Asset IT ' . $asset->asset_code . ' berhasil diperbarui.');
     }

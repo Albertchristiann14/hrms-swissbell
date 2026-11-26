@@ -16,13 +16,6 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        \Log::info('Profile Update Request Validation:', [
-            'hasFile' => $this->hasFile('photo'),
-            'file' => $this->file('photo'),
-            'error' => $this->file('photo') ? $this->file('photo')->getError() : null,
-            'all' => $this->all()
-        ]);
-
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -36,6 +29,7 @@ class ProfileUpdateRequest extends FormRequest
             'photo' => [
                 'nullable',
                 'image',
+                'mimes:jpg,jpeg,png,webp',
                 'max:2048',
             ],
             'phone_number' => ['nullable', 'string', 'max:20'],

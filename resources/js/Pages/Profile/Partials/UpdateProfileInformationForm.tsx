@@ -74,7 +74,7 @@ export default function UpdateProfileInformation({
                                 type="file"
                                 className="peer sr-only"
                                 onChange={(e) => setData('photo', e.target.files ? e.target.files[0] : null)}
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/webp"
                                 required={!user.profile_photo_path}
                             />
                             <label htmlFor="photo" className="cursor-pointer rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-[#E31B23] transition hover:bg-red-50 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-red-500">

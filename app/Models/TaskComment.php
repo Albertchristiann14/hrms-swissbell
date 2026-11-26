@@ -26,7 +26,7 @@ class TaskComment extends Model
 
     public function getFileUrlAttribute(): ?string
     {
-        return $this->file_path ? asset('storage/' . $this->file_path) : null;
+        return $this->file_path && $this->id ? route('tasks.comments.attachments.download', $this->id) : null;
     }
 
     public function getIsImageAttribute(): bool

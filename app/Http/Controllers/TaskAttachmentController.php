@@ -4,59 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\TaskAttachment;
+use App\Services\TaskAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class TaskAttachmentController extends Controller
 {
-    /**
-     * Check if user is authorized to interact with the task.
-     */
-    protected function canAccessTask($user, Task $task): bool
-    {
-        if ($user->hasAnyRole(['Super Admin', 'HRD / Admin', 'General Manager'])) {
-            return true;
-        }
-
-        if ($task->created_by === $user->id) {
-            return true;
-        }
-
-        $employee = $user->employee;
-        if (! $employee) {
-            return false;
-        }
-
-        if ($task->assignees()->where('employee_id', $employee->id)->exists()) {
-            return true;
-        }
-
-        if ($task->project && ($task->project->created_by === $user->id || ($task->project->owner_id && $task->project->owner_id === $employee->id))) {
-            return true;
-        }
-
-        if ($employee->department_id) {
-            if ($task->assignees()->where('department_id', $employee->department_id)->exists()) {
-                return true;
-            }
-            if ($task->project && $task->project->department_id === $employee->department_id) {
-                return true;
-            }
-        }
-
-        // Open/unassigned tasks with no restricted assignees or creator can be accessed by any active employee
-        if (is_null($task->created_by) && ! $task->assignees()->exists()) {
-            return true;
-        }
-
-        return false;
-    }
-
     public function store(Request $request, Task $task)
     {
         $user = Auth::user();
-        if (! $this->canAccessTask($user, $task)) {
+        if (! TaskAccessService::canAccessTask($user, $task)) {
             abort(403, 'You do not have permission to attach files to this task.');
         }
 
@@ -70,22 +29,73 @@ class TaskAttachmentController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store('task_attachments', 'public');
+        $originalName = $file->getClientOriginalName();
+        $fileSize = $file->getSize();
 
-        $task->attachments()->create([
-            'employee_id' => $employee->id,
-            'file_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-        ]);
+        // Store to private disk 'local'
+        $path = $file->store('task_attachments', 'local');
 
-        $task->activities()->create([
-            'employee_id' => $employee->id,
-            'action' => 'attachment_uploaded',
-            'description' => "Uploaded attachment: {$file->getClientOriginalName()}",
-        ]);
+        try {
+            DB::transaction(function () use ($task, $employee, $path, $originalName, $fileSize) {
+                $task->attachments()->create([
+                    'employee_id' => $employee->id,
+                    'file_name' => $originalName,
+                    'file_path' => $path,
+                    'file_size' => $fileSize,
+                ]);
+
+                $task->activities()->create([
+                    'employee_id' => $employee->id,
+                    'action' => 'attachment_uploaded',
+                    'description' => "Uploaded attachment: {$originalName}",
+                ]);
+            });
+        } catch (\Throwable $e) {
+            if ($path && Storage::disk('local')->exists($path)) {
+                Storage::disk('local')->delete($path);
+            }
+            throw $e;
+        }
 
         return back()->with('success', 'Attachment uploaded.');
+    }
+
+    public function download(Request $request, TaskAttachment $attachment)
+    {
+        $task = $attachment->task;
+        if (! $task || ! TaskAccessService::canAccessTask(Auth::user(), $task)) {
+            abort(403, 'You do not have permission to access this attachment.');
+        }
+
+        $disk = 'local';
+        if (! Storage::disk('local')->exists($attachment->file_path)) {
+            if (Storage::disk('public')->exists($attachment->file_path)) {
+                $disk = 'public';
+            } else {
+                abort(404, 'File lampiran tidak ditemukan di server penyimpanan.');
+            }
+        }
+
+        $cleanName = basename($attachment->file_name ?: 'attachment');
+        $safeName = preg_replace('/[^A-Za-z0-9_\-\. ]/', '_', $cleanName);
+        $safeName = trim(preg_replace('/\s+/', ' ', $safeName)) ?: 'attachment';
+
+        $extension = pathinfo($attachment->file_path, PATHINFO_EXTENSION);
+        if ($extension && ! str_ends_with(strtolower($safeName), '.' . strtolower($extension))) {
+            $safeName .= '.' . $extension;
+        }
+
+        $mime = Storage::disk($disk)->mimeType($attachment->file_path) ?: $attachment->file_type;
+        $isImage = ($mime && str_starts_with($mime, 'image/')) ||
+                   in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'], true);
+
+        if ($request->boolean('download') || ! $isImage) {
+            return Storage::disk($disk)->download($attachment->file_path, $safeName);
+        }
+
+        return Storage::disk($disk)->response($attachment->file_path, $safeName, [
+            'Content-Type' => $mime ?: 'application/octet-stream',
+        ], 'inline');
     }
 
     public function destroy(TaskAttachment $attachment)
@@ -100,9 +110,18 @@ class TaskAttachmentController extends Controller
 
         $task = $attachment->task;
         $fileName = $attachment->file_name;
+        $filePath = $attachment->file_path;
         $employeeId = $user->employee?->id;
 
-        Storage::disk('public')->delete($attachment->file_path);
+        if ($filePath) {
+            if (Storage::disk('local')->exists($filePath)) {
+                Storage::disk('local')->delete($filePath);
+            }
+            if (Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+        }
+
         $attachment->delete();
 
         if ($task) {

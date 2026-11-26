@@ -47,6 +47,7 @@ mkdir -p storage/framework/cache/data \
          storage/framework/views \
          storage/logs \
          storage/app/public \
+         storage/app/private \
          bootstrap/cache \
          database \
          docker/nginx/ssl

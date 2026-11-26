@@ -4,59 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\TaskComment;
+use App\Services\TaskAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class TaskCommentController extends Controller
 {
-    /**
-     * Check if user is authorized to interact with the task.
-     */
-    protected function canAccessTask($user, Task $task): bool
-    {
-        if ($user->hasAnyRole(['Super Admin', 'HRD / Admin', 'General Manager'])) {
-            return true;
-        }
-
-        if ($task->created_by === $user->id) {
-            return true;
-        }
-
-        $employee = $user->employee;
-        if (! $employee) {
-            return false;
-        }
-
-        if ($task->assignees()->where('employee_id', $employee->id)->exists()) {
-            return true;
-        }
-
-        if ($task->project && ($task->project->created_by === $user->id || ($task->project->owner_id && $task->project->owner_id === $employee->id))) {
-            return true;
-        }
-
-        if ($employee->department_id) {
-            if ($task->assignees()->where('department_id', $employee->department_id)->exists()) {
-                return true;
-            }
-            if ($task->project && $task->project->department_id === $employee->department_id) {
-                return true;
-            }
-        }
-
-        // Open/unassigned tasks with no restricted assignees or creator can be accessed by any active employee
-        if (is_null($task->created_by) && ! $task->assignees()->exists()) {
-            return true;
-        }
-
-        return false;
-    }
-
     public function store(Request $request, Task $task)
     {
         $user = Auth::user();
-        if (! $this->canAccessTask($user, $task)) {
+        if (! TaskAccessService::canAccessTask($user, $task)) {
             abort(403, 'You do not have permission to comment on this task.');
         }
 
@@ -64,7 +22,7 @@ class TaskCommentController extends Controller
             'content' => 'nullable|string|max:5000',
             'tagged_user_ids' => 'nullable|array',
             'tagged_user_ids.*' => 'integer|exists:users,id',
-            'file' => 'nullable|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,zip,csv,txt',
+            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,zip,csv,txt',
         ]);
 
         $content = trim($validated['content'] ?? '');
@@ -112,11 +70,12 @@ class TaskCommentController extends Controller
             'content' => $content,
         ];
 
+        $uploadedPath = null;
         if ($hasFile) {
             $file = $request->file('file');
-            $path = $file->store('task_comment_attachments', 'public');
+            $uploadedPath = $file->store('task_comment_attachments', 'local');
             if (\Illuminate\Support\Facades\Schema::hasColumn('task_comments', 'file_path')) {
-                $commentData['file_path'] = $path;
+                $commentData['file_path'] = $uploadedPath;
                 $commentData['file_name'] = $file->getClientOriginalName();
                 $commentData['file_size'] = $file->getSize();
                 $commentData['file_type'] = $file->getMimeType();
@@ -128,7 +87,14 @@ class TaskCommentController extends Controller
             $commentData['tagged_user_ids'] = $taggedUserIds;
         }
 
-        $comment = $task->comments()->create($commentData);
+        try {
+            $comment = $task->comments()->create($commentData);
+        } catch (\Throwable $e) {
+            if ($uploadedPath && Storage::disk('local')->exists($uploadedPath)) {
+                Storage::disk('local')->delete($uploadedPath);
+            }
+            throw $e;
+        }
 
         // Send notification to tagged users and prepare activity name string
         $taggedNames = null;
@@ -148,7 +114,7 @@ class TaskCommentController extends Controller
         }
 
         $descContent = !empty($content) ? '"' . \Illuminate\Support\Str::limit($content, 40) . '"' : '';
-        $fileInfo = $hasFile ? '(Attached: ' . $commentData['file_name'] . ')' : '';
+        $fileInfo = $hasFile ? '(Attached: ' . ($commentData['file_name'] ?? 'file') . ')' : '';
         $activityDesc = 'Added comment ' . trim($descContent . ' ' . $fileInfo);
         if ($taggedNames) {
             $activityDesc .= ' (Mentioned: ' . $taggedNames . ')';
@@ -161,6 +127,48 @@ class TaskCommentController extends Controller
         ]);
 
         return back()->with('success', 'Comment added.');
+    }
+
+    public function downloadAttachment(Request $request, TaskComment $comment)
+    {
+        if (! $comment->file_path) {
+            abort(404, 'Komentar ini tidak memiliki lampiran file.');
+        }
+
+        $task = $comment->task;
+        if (! $task || ! TaskAccessService::canAccessTask(Auth::user(), $task)) {
+            abort(403, 'You do not have permission to access this attachment.');
+        }
+
+        $disk = 'local';
+        if (! Storage::disk('local')->exists($comment->file_path)) {
+            if (Storage::disk('public')->exists($comment->file_path)) {
+                $disk = 'public';
+            } else {
+                abort(404, 'File lampiran komentar tidak ditemukan di server penyimpanan.');
+            }
+        }
+
+        $cleanName = basename($comment->file_name ?: 'attachment');
+        $safeName = preg_replace('/[^A-Za-z0-9_\-\. ]/', '_', $cleanName);
+        $safeName = trim(preg_replace('/\s+/', ' ', $safeName)) ?: 'attachment';
+
+        $extension = pathinfo($comment->file_path, PATHINFO_EXTENSION);
+        if ($extension && ! str_ends_with(strtolower($safeName), '.' . strtolower($extension))) {
+            $safeName .= '.' . $extension;
+        }
+
+        $mime = Storage::disk($disk)->mimeType($comment->file_path) ?: $comment->file_type;
+        $isImage = ($mime && str_starts_with($mime, 'image/')) ||
+                   in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'], true);
+
+        if ($request->boolean('download') || ! $isImage) {
+            return Storage::disk($disk)->download($comment->file_path, $safeName);
+        }
+
+        return Storage::disk($disk)->response($comment->file_path, $safeName, [
+            'Content-Type' => $mime ?: 'application/octet-stream',
+        ], 'inline');
     }
 
     public function destroy(TaskComment $comment)
@@ -177,7 +185,12 @@ class TaskCommentController extends Controller
         $employeeId = $user->employee?->id;
 
         if ($comment->file_path) {
-            Storage::disk('public')->delete($comment->file_path);
+            if (Storage::disk('local')->exists($comment->file_path)) {
+                Storage::disk('local')->delete($comment->file_path);
+            }
+            if (Storage::disk('public')->exists($comment->file_path)) {
+                Storage::disk('public')->delete($comment->file_path);
+            }
         }
 
         $comment->delete();

@@ -1224,7 +1224,7 @@ export default function TaskDetailModal({
                                                             {renderCommentContent(comment.content)}
 
                                                             {comment.file_path && (() => {
-                                                                const fileUrl = comment.file_url || `/storage/${comment.file_path}`;
+                                                                const fileUrl = comment.file_url || route('tasks.comments.attachments.download', comment.id);
                                                                 const isImg = comment.is_image || 
                                                                     (comment.file_type && comment.file_type.startsWith('image/')) ||
                                                                     (comment.file_name && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(comment.file_name));
