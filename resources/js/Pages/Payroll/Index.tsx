@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, Link, useForm } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
+import PageHeader from '@/Components/PageHeader';
+import { Card, CardBody } from '@/Components/Card';
+import SelectInput from '@/Components/SelectInput';
+import TextInput from '@/Components/TextInput';
 
 export default function PayrollIndex({ periods = [], selectedPeriodId, payrolls = [], flash }: any) {
     const [showGenerate, setShowGenerate] = useState(false);
@@ -24,7 +27,17 @@ export default function PayrollIndex({ periods = [], selectedPeriodId, payrolls 
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-slate-800 leading-tight">Payroll Management</h2>}
+            header={
+                <PageHeader
+                    title="Payroll Management"
+                    subtitle="Generate monthly payroll calculations and review employee salary slips"
+                    moduleName="Human Capital"
+                    primaryAction={{
+                        label: showGenerate ? 'Close Form' : 'Generate Payroll',
+                        onClick: () => setShowGenerate(!showGenerate),
+                    }}
+                />
+            }
         >
             <Head title="Payroll" />
 
@@ -36,12 +49,12 @@ export default function PayrollIndex({ periods = [], selectedPeriodId, payrolls 
                         </div>
                     )}
 
-                    <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200 p-6">
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                    <Card>
+                        <CardBody>
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-5">
                             <div className="flex items-center space-x-3">
-                                <label className="text-sm font-medium text-slate-700">Payroll Period:</label>
-                                <select 
-                                    className="border-slate-300 focus:border-[#E31B23] focus:ring-1 focus:ring-[#E31B23] rounded-xl text-sm shadow-xs py-2 px-3 text-slate-900"
+                                <label className="text-xs font-semibold uppercase tracking-wider text-slate-600">Payroll Period:</label>
+                                <SelectInput 
                                     value={selectedPeriodId || ''}
                                     onChange={handlePeriodChange}
                                 >
@@ -49,38 +62,33 @@ export default function PayrollIndex({ periods = [], selectedPeriodId, payrolls 
                                     {periods.map((p: any) => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
                                     ))}
-                                </select>
+                                </SelectInput>
                             </div>
-                            <PrimaryButton 
-                                onClick={() => setShowGenerate(!showGenerate)}
-                            >
-                                {showGenerate ? 'Close Form' : 'Generate Payroll'}
-                            </PrimaryButton>
                         </div>
 
                         {showGenerate && (
-                            <div className="mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                                <h3 className="text-base font-semibold text-slate-900 mb-4">Generate New Payroll</h3>
+                            <div className="mb-6 bg-slate-50/80 p-5 rounded-xl border border-slate-200">
+                                <h3 className="text-sm font-semibold text-slate-900 mb-4">Generate New Payroll</h3>
                                 <form onSubmit={submitGenerate} className="flex flex-wrap items-end gap-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Month</label>
-                                        <select 
+                                        <SelectInput 
                                             value={data.month} 
                                             onChange={e => setData('month', parseInt(e.target.value))}
-                                            className="border-slate-300 focus:border-[#E31B23] focus:ring-1 focus:ring-[#E31B23] rounded-xl text-sm shadow-xs w-36 py-2 px-3 text-slate-900"
+                                            className="w-40"
                                         >
                                             {Array.from({length: 12}, (_, i) => i + 1).map(m => (
                                                 <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
                                             ))}
-                                        </select>
+                                        </SelectInput>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Year</label>
-                                        <input 
+                                        <TextInput 
                                             type="number" 
                                             value={data.year} 
                                             onChange={e => setData('year', parseInt(e.target.value))}
-                                            className="border-slate-300 focus:border-[#E31B23] focus:ring-1 focus:ring-[#E31B23] rounded-xl text-sm shadow-xs w-32 py-2 px-3 text-slate-900"
+                                            className="w-32"
                                             min="2020" max="2099"
                                         />
                                     </div>
@@ -91,8 +99,8 @@ export default function PayrollIndex({ periods = [], selectedPeriodId, payrolls 
                                         {processing ? 'Processing...' : 'Run Calculation'}
                                     </PrimaryButton>
                                 </form>
-                                {errors.month && <p className="text-red-600 text-xs mt-2">{errors.month}</p>}
-                                {errors.year && <p className="text-red-600 text-xs mt-2">{errors.year}</p>}
+                                {errors.month && <p className="text-rose-600 text-xs mt-2">{errors.month}</p>}
+                                {errors.year && <p className="text-rose-600 text-xs mt-2">{errors.year}</p>}
                             </div>
                         )}
 
@@ -146,7 +154,8 @@ export default function PayrollIndex({ periods = [], selectedPeriodId, payrolls 
                                 {selectedPeriodId ? 'No payroll generated for this period yet.' : 'Please select or generate a payroll period.'}
                             </div>
                         )}
-                    </div>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -3,6 +3,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import Badge from '@/Components/Badge';
+import PageHeader from '@/Components/PageHeader';
+import { Card } from '@/Components/Card';
 
 const sortableHeaders = [
     { key: 'employee', label: 'Employee' },
@@ -84,15 +86,15 @@ export default function EmployeesIndex({ auth, employees, departments = [], filt
         <AuthenticatedLayout
             user={auth.user}
             header={
-                <div className="flex justify-between items-center">
-                    <h2 className="font-semibold text-xl text-slate-800 leading-tight">Employees</h2>
-                    <Link 
-                        href={route('employees.create')} 
-                        className="inline-flex items-center px-4 py-2 bg-[#E31B23] hover:bg-[#c4141b] active:bg-[#a30f15] text-white font-semibold text-xs uppercase tracking-widest rounded-xl transition-colors shadow-xs"
-                    >
-                        + New Employee
-                    </Link>
-                </div>
+                <PageHeader
+                    title="Employees"
+                    subtitle="Manage employee directory, department assignments, and employment statuses"
+                    moduleName="Human Capital"
+                    primaryAction={{
+                        label: '+ New Employee',
+                        href: route('employees.create'),
+                    }}
+                />
             }
         >
             <Head title="Employees" />
@@ -144,7 +146,7 @@ export default function EmployeesIndex({ auth, employees, departments = [], filt
                         <span className="ml-auto text-[11px] text-slate-500">Click a column title to sort · 3rd click resets</span>
                     </div>
 
-                    <div className="bg-white overflow-hidden shadow-xs rounded-2xl border border-slate-200">
+                    <Card>
                         <div className="p-4 sm:p-5 text-slate-900 overflow-x-auto">
                             <table className="min-w-full divide-y divide-slate-200 text-xs">
                                 <thead className="bg-slate-50">
@@ -230,7 +232,7 @@ export default function EmployeesIndex({ auth, employees, departments = [], filt
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </Card>
                 </div>
             </div>
         </AuthenticatedLayout>

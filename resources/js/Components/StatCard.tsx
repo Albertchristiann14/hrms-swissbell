@@ -45,22 +45,22 @@ export default function StatCard({
 
     const CardInner = (
         <div
-            className={`bg-white rounded-2xl p-4 sm:p-5 border shadow-2xs flex flex-col justify-between transition-all select-none ${
+            className={`bg-white rounded-xl p-4 sm:p-5 border shadow-2xs flex flex-col justify-between transition-colors select-none ${
                 effectiveHref || effectiveOnClick
-                    ? 'hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 cursor-pointer group active:scale-[0.99]'
-                    : 'border-slate-200/80'
-            } ${effectiveStatus === 'danger' ? 'border-red-200/90' : effectiveStatus === 'warning' ? 'border-amber-200/80' : effectiveStatus === 'success' ? 'border-emerald-200/80' : 'border-slate-200/80'} ${className}`}
+                    ? 'hover:border-slate-300 hover:bg-slate-50/40 cursor-pointer group'
+                    : ''
+            } ${effectiveStatus === 'danger' ? 'border-red-200/90' : effectiveStatus === 'warning' ? 'border-amber-200/80' : effectiveStatus === 'success' ? 'border-emerald-200/80' : 'border-slate-200/90'} ${className}`}
             role={effectiveHref || effectiveOnClick ? 'button' : 'region'}
             aria-label={`${label}: ${value}`}
         >
             {/* Header: Label + Line Icon */}
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block truncate">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block truncate">
                         {label}
                     </span>
                     {badge !== undefined && (
-                        <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${token.bg} ${token.text} border ${token.border}`}>
+                        <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${token.bg} ${token.text} border ${token.border}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${token.dotColor}`} aria-hidden="true" />
                             {badge}
                         </span>
@@ -68,7 +68,7 @@ export default function StatCard({
                 </div>
 
                 {/* Line Icon Container with semantic colors */}
-                <div className={`w-10 h-10 rounded-xl ${token.bg} ${token.iconColor} border ${token.border} flex items-center justify-center shrink-0 transition-transform ${href || onClick ? 'group-hover:scale-105' : ''}`}>
+                <div className={`w-9 h-9 rounded-lg ${token.bg} ${token.iconColor} border ${token.border} flex items-center justify-center shrink-0`}>
                     {icon}
                 </div>
             </div>

@@ -41,7 +41,7 @@ export default function EmptyState({
 
     return (
         <div
-            className={`flex flex-col items-center justify-center text-center rounded-2xl bg-slate-50/70 border border-slate-200/60 transition-all ${
+            className={`flex flex-col items-center justify-center text-center rounded-xl bg-slate-50/60 border border-dashed border-slate-300/80 transition-colors ${
                 compact ? 'py-5 px-4' : 'py-10 px-6'
             } ${className}`}
             role="status"

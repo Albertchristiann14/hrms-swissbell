@@ -33,9 +33,17 @@ export default function EmployeeForm({ auth, employee, currentRole, departments,
         role: currentRole || 'Staff / Employee',
     });
 
-    const availablePositions = posList.filter((position: any) =>
-        data.department_id !== '' && String(position.department_id) === data.department_id
-    );
+    const existingEmployeePositionId = employee?.position_id ? String(employee.position_id) : '';
+
+    const availablePositions = posList.filter((position: any) => {
+        if (data.department_id === '' || String(position.department_id) !== data.department_id) {
+            return false;
+        }
+        // Inactive positions cannot be newly assigned, but existing employee historical assignment is preserved.
+        const isActive = position.is_active !== false;
+        const isCurrentHistorical = isEditing && existingEmployeePositionId !== '' && String(position.id) === existingEmployeePositionId;
+        return isActive || isCurrentHistorical;
+    });
 
     const changeDepartment = (departmentId: string) => {
         // Positions are department-specific. Clear a stale position when changing department.
@@ -43,7 +51,9 @@ export default function EmployeeForm({ auth, employee, currentRole, departments,
             ...previous,
             department_id: departmentId,
             position_id: previous.position_id && posList.some((position: any) =>
-                String(position.id) === previous.position_id && String(position.department_id) === departmentId
+                String(position.id) === previous.position_id &&
+                String(position.department_id) === departmentId &&
+                (position.is_active !== false || (isEditing && String(position.id) === existingEmployeePositionId))
             ) ? previous.position_id : '',
         }));
     };
@@ -132,7 +142,11 @@ export default function EmployeeForm({ auth, employee, currentRole, departments,
                                         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Position</label>
                                         <select value={data.position_id} onChange={e => setData('position_id', e.target.value)} disabled={!data.department_id} className="mt-1 block w-full border-slate-300 rounded-xl shadow-xs text-sm focus:ring-1 focus:ring-[#E31B23] focus:border-[#E31B23] disabled:bg-slate-100 disabled:cursor-not-allowed">
                                             <option value="">{data.department_id ? '-- Select Position --' : '-- Choose Department First --'}</option>
-                                            {availablePositions.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            {availablePositions.map((p: any) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name}{p.is_active === false ? ' (Inactive)' : ''}
+                                                </option>
+                                            ))}
                                         </select>
                                         {errors.position_id && <p className="text-red-600 text-xs mt-1">{errors.position_id}</p>}
                                     </div>

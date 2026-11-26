@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-BsPR_7g3.js";var t=e();function n({value:e,className:n=``,children:r,...i}){return(0,t.jsx)(`label`,{...i,className:`block text-xs font-semibold text-slate-700 tracking-wide `+n,children:e||r})}export{n as t};

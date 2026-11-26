@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleAndPermissionSeeder::class);
         $this->call(RoomAndSecuritySeeder::class);
+        $this->call(PositionSeeder::class);
 
         // ─── DEPARTMENTS ───
         $departments = [

@@ -18,6 +18,7 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\PerformanceController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskAttachmentController;
@@ -218,6 +219,8 @@ Route::middleware(['auth', 'approved'])->group(function () {
     // Administration & Organization Routes
     Route::middleware(['role:Super Admin|HRD / Admin|General Manager'])->group(function () {
         Route::resource('departments', DepartmentController::class)->except(['create', 'edit', 'show']);
+        Route::resource('positions', PositionController::class)->except(['create', 'edit', 'show']);
+        Route::patch('/positions/{position}/toggle-status', [PositionController::class, 'toggleStatus'])->name('positions.toggle-status');
         Route::resource('employees', EmployeeController::class)->except(['show']);
     });
 

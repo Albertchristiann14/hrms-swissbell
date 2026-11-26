@@ -74,43 +74,43 @@ export default function Index({ projects, auth, filters }: any) {
                     </Link>
                     <Link
                         href={route('projects.index', { status: 'Active' })}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                             activeStatus === 'Active'
-                                ? 'bg-white text-emerald-700 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                                ? 'bg-white text-emerald-700 shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                         }`}
                     >
                         Active
                     </Link>
                     <Link
                         href={route('projects.index', { status: 'Planning' })}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                             activeStatus === 'Planning'
-                                ? 'bg-white text-blue-700 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                                ? 'bg-white text-sky-700 shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                         }`}
                     >
                         Planning
                     </Link>
                     <Link
                         href={route('projects.index', { status: 'Completed' })}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                             activeStatus === 'Completed'
-                                ? 'bg-white text-gray-800 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                                ? 'bg-white text-slate-900 shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                         }`}
                     >
                         Completed
                     </Link>
                     <Link
                         href={route('projects.index', { status: 'Archived' })}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                             activeStatus === 'Archived'
-                                ? 'bg-white text-purple-700 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                                ? 'bg-white text-slate-900 shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                         }`}
                     >
-                        Archived 📦
+                        Archived
                     </Link>
                 </div>
 

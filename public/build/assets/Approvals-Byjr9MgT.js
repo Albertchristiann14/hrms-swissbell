@@ -1,0 +1,1 @@
+import{n as e,t}from"./jsx-runtime-BsPR_7g3.js";import n from"./Index-QS-d2US6.js";e();var r=t();function i(e){return(0,r.jsx)(n,{...e,canApprove:!0,allRequests:e.allRequests||e.overtimeRequests||[],overtimeRequests:e.overtimeRequests||[],activeTab:`approvals`})}export{i as default};

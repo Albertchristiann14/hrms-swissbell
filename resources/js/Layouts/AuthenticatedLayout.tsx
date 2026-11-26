@@ -27,6 +27,7 @@ const icons: Record<string, JSX.Element> = {
     Calendar: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
     Employees: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
     Departments: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+    Positions: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
     'Time Management': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     'Overview': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>,
     'Attendance Data': <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>,
@@ -382,6 +383,7 @@ function AuthenticatedShell({
                         items: [
                             isAdmin ? { name: 'Employees', route: 'employees.index', pattern: 'employees.*' } : null,
                             isAdmin ? { name: 'Departments', route: 'departments.index', pattern: 'departments.*' } : null,
+                            isAdmin ? { name: 'Positions', route: 'positions.index', pattern: 'positions.*' } : null,
                             { name: 'Employee Directory', route: 'directory.index', pattern: 'directory.index' },
                         ].filter(Boolean) as any[],
                     },
@@ -653,63 +655,63 @@ function AuthenticatedShell({
                 <aside
                     aria-label="Sidebar Navigation"
                     aria-hidden={!isSidebarOpen}
-                    className={`hidden md:flex flex-col shrink-0 h-full bg-white/80 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out overflow-hidden z-20 ${
+                    className={`hidden md:flex flex-col shrink-0 h-full bg-[#0F172A] text-slate-200 transition-all duration-200 ease-out overflow-hidden z-20 ${
                         isSidebarOpen
-                            ? 'w-64 border-r border-slate-200/60 opacity-100'
+                            ? 'w-64 border-r border-slate-800 opacity-100'
                             : 'w-0 border-r-0 border-transparent opacity-0 pointer-events-none'
                     }`}
                 >
                     <div
-                        className={`w-64 flex flex-col h-full shrink-0 transition-transform duration-300 ease-in-out ${
+                        className={`w-64 flex flex-col h-full shrink-0 transition-transform duration-200 ease-out ${
                             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
                         {/* Brand Header with Close / Collapse Button */}
-                        <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-red-700/20 bg-[#E31B23]">
+                        <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-slate-800/90 bg-[#0B1120]">
                             <Link href="/" className="flex items-center min-w-0 group" title="Swiss-Belinn SKA Pekanbaru">
-                                <div className="h-8 w-8 rounded-xl overflow-hidden shrink-0 ring-1 ring-white/30 shadow-xs">
+                                <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 ring-1 ring-white/15 bg-white">
                                     <ApplicationLogo className="h-full w-full object-cover" />
                                 </div>
                                 <div className="ml-2.5 min-w-0">
                                     <span className="font-bold text-white text-xs tracking-tight block truncate">Swiss-Belinn</span>
-                                    <span className="block text-[9px] text-red-100 leading-none">SKA Pekanbaru</span>
+                                    <span className="block text-[10px] text-slate-400 leading-tight">SKA Pekanbaru</span>
                                 </div>
                             </Link>
                             <button
                                 type="button"
                                 onClick={toggleSidebar}
                                 title="Close Sidebar (Ctrl+B)"
-                                className="text-white/80 hover:text-white hover:bg-white/15 p-1.5 rounded-lg transition-all ml-2 shrink-0 group active:scale-95"
+                                className="text-slate-400 hover:text-white hover:bg-slate-800 p-1.5 rounded-lg transition-colors ml-2 shrink-0"
                             >
-                                <svg className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                                 </svg>
                             </button>
                         </div>
 
                         {/* Quick Link: Return to Desk Launcher (Main Menu) */}
-                        <div className="shrink-0 p-3 pb-2 border-b border-slate-100">
+                        <div className="shrink-0 p-3 pb-2 border-b border-slate-800/80">
                             <Link
                                 href={route('dashboard')}
-                                className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-[#E31B23] transition-all border border-slate-200/60 group font-semibold text-xs shadow-2xs"
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors border border-slate-700/60 group font-medium text-xs"
                                 title="Back to Main Menu (Desk Launcher)"
                             >
-                                <div className="w-6 h-6 rounded-lg bg-red-100 group-hover:bg-[#E31B23] text-[#E31B23] group-hover:text-white flex items-center justify-center transition-colors shrink-0">
+                                <div className="w-6 h-6 rounded-md bg-[#E31B23]/15 group-hover:bg-[#E31B23] text-[#f87171] group-hover:text-white flex items-center justify-center transition-colors shrink-0">
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                     </svg>
                                 </div>
-                                <span className="truncate">← Main Menu (Desk)</span>
+                                <span className="truncate">Main Menu (Desk)</span>
                             </Link>
                         </div>
 
                         {/* Active Module Indicator Card */}
                         <div className="shrink-0 px-3 pt-3 pb-1">
-                            <div className={`p-2.5 rounded-xl ${activeModuleInfo.badgeBg} border ${activeModuleInfo.badgeBorder}`}>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block leading-tight">Active Module</span>
-                                <div className="flex items-center gap-1.5 mt-0.5">
+                            <div className="px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-800">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block leading-tight">Active Module</span>
+                                <div className="flex items-center gap-2 mt-1">
                                     <span className={`w-2 h-2 rounded-full ${activeModuleInfo.dotColor} shrink-0`}></span>
-                                    <span className="text-xs font-bold text-gray-800 truncate">{activeModuleInfo.title}</span>
+                                    <span className="text-xs font-semibold text-white truncate">{activeModuleInfo.title}</span>
                                 </div>
                             </div>
                         </div>
@@ -724,16 +726,16 @@ function AuthenticatedShell({
                                 const isCollapsed = !!collapsedSections[`${activeModuleInfo.key}:${section.title}`];
 
                                 return (
-                                    <div key={idx} className="transition-all duration-200">
+                                    <div key={idx}>
                                         <button
                                             type="button"
                                             onClick={() => toggleSection(section.title)}
-                                            className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold text-gray-500 hover:text-gray-800 uppercase tracking-widest mb-1.5 group select-none cursor-pointer rounded-lg hover:bg-slate-100/70 transition-all active:scale-[0.99]"
+                                            className="w-full flex items-center justify-between px-2.5 py-1.5 text-[10px] font-semibold text-slate-400 hover:text-slate-200 uppercase tracking-widest mb-1 group select-none cursor-pointer rounded-md hover:bg-slate-800/50 transition-colors"
                                             title={section.title}
                                         >
                                             <span className="truncate" title={section.title}>{section.title}</span>
                                             <svg
-                                                className={`w-3.5 h-3.5 text-gray-400 group-hover:text-gray-700 transition-transform duration-200 ease-in-out shrink-0 pointer-events-none ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
+                                                className={`w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-transform duration-150 shrink-0 pointer-events-none ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                                 stroke="currentColor"
@@ -742,23 +744,26 @@ function AuthenticatedShell({
                                             </svg>
                                         </button>
                                         {!isCollapsed && (
-                                            <ul className="space-y-0.5 animate-fadeIn">
+                                            <ul className="space-y-0.5">
                                                 {section.items.map((item: any, itemIdx: number) => {
                                                     const active = isItemActive(item);
                                                     return (
                                                         <li key={itemIdx}>
                                                             <Link
                                                                 href={getItemHref(item)}
-                                                                className={`group flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-xl transition-all duration-200 ${
+                                                                className={`group flex items-center gap-2.5 px-2.5 py-2 text-[13px] rounded-lg transition-colors duration-150 ${
                                                                     active
-                                                                        ? 'bg-red-50 text-[#E31B23] shadow-xs ring-1 ring-red-100 font-semibold hover:bg-red-100/70 hover:translate-x-0.5'
-                                                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-1'
+                                                                        ? 'bg-slate-800/90 text-white font-semibold ring-1 ring-white/10'
+                                                                        : 'text-slate-300 font-medium hover:bg-slate-800/60 hover:text-white'
                                                                 }`}
                                                             >
-                                                                <span className={`transition-colors shrink-0 ${active ? 'text-[#E31B23]' : 'text-slate-400 group-hover:text-slate-600'}`}>
-                                                                    {icons[item.name] || <span className="w-5 h-5 rounded bg-slate-200 inline-block" />}
+                                                                <span className={`shrink-0 transition-colors ${active ? 'text-[#E31B23]' : 'text-slate-400 group-hover:text-slate-200'}`}>
+                                                                    {icons[item.name] || <span className="w-5 h-5 rounded bg-slate-700 inline-block" />}
                                                                 </span>
                                                                 <span className="truncate">{item.name}</span>
+                                                                {active && (
+                                                                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#E31B23] shrink-0" aria-hidden="true" />
+                                                                )}
                                                             </Link>
                                                         </li>
                                                     );
@@ -771,21 +776,21 @@ function AuthenticatedShell({
                         </div>
 
                         {/* Persistent Settings Link at bottom of Sidebar */}
-                        <div className="shrink-0 px-3 py-2 border-t border-slate-100">
+                        <div className="shrink-0 px-3 py-2 border-t border-slate-800">
                             <Link
                                 href={isSuperAdmin ? route('settings.index') : route('profile.edit')}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+                                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors duration-150 ${
                                     (route().current('settings.*') || route().current('roles.*') || route().current('audit-logs.*'))
-                                        ? 'bg-red-50 text-[#E31B23] shadow-xs ring-1 ring-red-100 font-semibold'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-0.5'
+                                        ? 'bg-slate-800/90 text-white font-semibold ring-1 ring-white/10'
+                                        : 'text-slate-300 font-medium hover:bg-slate-800/60 hover:text-white'
                                 }`}
                             >
-                                <span className={`transition-colors shrink-0 ${(route().current('settings.*') || route().current('roles.*') || route().current('audit-logs.*')) ? 'text-[#E31B23]' : 'text-slate-400'}`}>
+                                <span className={`shrink-0 ${(route().current('settings.*') || route().current('roles.*') || route().current('audit-logs.*')) ? 'text-[#E31B23]' : 'text-slate-400'}`}>
                                     {icons['Settings']}
                                 </span>
                                 <span className="truncate">Settings</span>
                                 {isSuperAdmin && (
-                                    <span className="ml-auto text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                    <span className="ml-auto text-[10px] font-semibold text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
                                         Admin
                                     </span>
                                 )}
@@ -793,9 +798,9 @@ function AuthenticatedShell({
                         </div>
 
                         {/* User Profile Footer */}
-                        <div className="shrink-0 border-t border-slate-100 p-3 bg-white/50">
-                            <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                                <div className="h-8 w-8 rounded-full overflow-hidden border border-slate-200 shadow-xs shrink-0">
+                        <div className="shrink-0 border-t border-slate-800 p-3 bg-[#0B1120]/60">
+                            <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-slate-800/40 border border-slate-800">
+                                <div className="h-8 w-8 rounded-full overflow-hidden border border-slate-700 shrink-0">
                                     <img
                                         src={user.profile_photo_url}
                                         alt={user.name}
@@ -810,8 +815,8 @@ function AuthenticatedShell({
                                     />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-slate-800 truncate">{user.name}</p>
-                                    <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-semibold ${roleBadgeColors[userRole] || 'bg-slate-100 text-slate-600'}`}>
+                                    <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+                                    <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-semibold ${roleBadgeColors[userRole] || 'bg-slate-700 text-slate-200'}`}>
                                         {userRole}
                                     </span>
                                 </div>
@@ -823,11 +828,11 @@ function AuthenticatedShell({
 
             {/* Main Content Area */}
             <div 
-                className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden transition-all duration-300"
+                className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden"
                 scroll-region="true"
             >
                 {/* Topbar */}
-                <header className="bg-white/70 backdrop-blur-lg border-b border-slate-200/60 sticky top-0 z-30 shadow-xs transition-all duration-300">
+                <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
                     <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
 
                         {/* Mobile menu button */}
@@ -936,7 +941,7 @@ function AuthenticatedShell({
                                             const notifCount = notifList.length;
                                             if (notifCount === 0) return null;
                                             return (
-                                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E31B23] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs animate-pulse">
+                                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E31B23] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-2xs">
                                                     {notifCount > 9 ? '9+' : notifCount}
                                                 </span>
                                             );
@@ -1113,7 +1118,7 @@ function AuthenticatedShell({
                             </div>
 
                             {/* Active module indicator */}
-                            <div className="px-3 py-1.5 mb-2 rounded-lg bg-gray-100 text-xs font-semibold text-gray-700 flex items-center gap-2">
+                            <div className="px-3 py-1.5 mb-2 rounded-lg bg-slate-100 text-xs font-semibold text-slate-700 flex items-center gap-2">
                                 <span className={`w-2 h-2 rounded-full ${activeModuleInfo.dotColor}`}></span>
                                 <span>Module: {activeModuleInfo.title}</span>
                             </div>
@@ -1126,12 +1131,12 @@ function AuthenticatedShell({
                                         <button
                                             type="button"
                                             onClick={() => toggleSection(section.title)}
-                                            className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 group cursor-pointer hover:bg-slate-50 rounded"
+                                            className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 group cursor-pointer hover:bg-slate-50 rounded"
                                             title={isCollapsed ? `Expand ${section.title}` : `Collapse ${section.title}`}
                                         >
                                             <span>{section.title}</span>
                                             <svg
-                                                className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ease-in-out shrink-0 pointer-events-none ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
+                                                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 shrink-0 pointer-events-none ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                                 stroke="currentColor"
@@ -1146,7 +1151,7 @@ function AuthenticatedShell({
                                                     return (
                                                         <ResponsiveNavLink key={itemIdx} href={getItemHref(item)} active={active}>
                                                             <span className="flex items-center gap-2">
-                                                                {icons[item.name] || <span className="w-5 h-5 rounded bg-gray-200 inline-block" />}
+                                                                {icons[item.name] || <span className="w-5 h-5 rounded bg-slate-200 inline-block" />}
                                                                 {item.name}
                                                             </span>
                                                         </ResponsiveNavLink>
@@ -1159,14 +1164,14 @@ function AuthenticatedShell({
                             })}
                         </div>
 
-                        <div className="border-t border-gray-200 px-4 py-3">
+                        <div className="border-t border-slate-200 px-4 py-3">
                             <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full overflow-hidden border border-gray-200 shrink-0">
+                                <div className="h-9 w-9 rounded-full overflow-hidden border border-slate-200 shrink-0">
                                     <img
                                         src={user.profile_photo_url}
                                         alt={user.name}
-                                        width="32"
-                                        height="32"
+                                        width="36"
+                                        height="36"
                                         loading="lazy"
                                         decoding="async"
                                         className="h-full w-full object-cover"
@@ -1176,8 +1181,8 @@ function AuthenticatedShell({
                                     />
                                 </div>
                                 <div>
-                                    <div className="text-sm font-semibold text-gray-800">{user.name}</div>
-                                    <div className="text-xs text-gray-500">{user.email}</div>
+                                    <div className="text-sm font-semibold text-slate-800">{user.name}</div>
+                                    <div className="text-xs text-slate-500">{user.email}</div>
                                 </div>
                             </div>
                             <div className="mt-3 space-y-1">
@@ -1193,7 +1198,7 @@ function AuthenticatedShell({
 
                 {/* Dedicated Page Header Banner for all normal pages (!hideSidebar) */}
                 {header && !hideSidebar && (
-                    <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 py-3 px-3 sm:px-4 lg:px-6 shadow-2xs transition-all">
+                    <div className="bg-white border-b border-slate-200/80 py-3.5 px-4 sm:px-6 lg:px-8">
                         <div className={isSidebarOpen ? 'w-full max-w-[1600px] mx-auto' : 'w-full max-w-[1650px] mx-auto'}>
                             {header}
                         </div>
@@ -1201,7 +1206,7 @@ function AuthenticatedShell({
                 )}
 
                 {/* Page Content */}
-                <main className={`flex-1 flex flex-col overflow-y-auto transition-all duration-300 ${hideSidebar ? 'p-4 sm:p-6 lg:p-10' : 'p-3 sm:p-4 lg:p-5'}`}>
+                <main className={`flex-1 flex flex-col overflow-y-auto ${hideSidebar ? 'p-4 sm:p-6 lg:p-8' : 'p-4 sm:p-6'}`}>
                     <div className={`flex-1 ${hideSidebar ? 'max-w-6xl mx-auto w-full' : isSidebarOpen ? 'w-full max-w-[1600px] mx-auto' : 'w-full max-w-[1650px] mx-auto'}`}>
                         {children}
                     </div>

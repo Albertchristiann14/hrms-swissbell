@@ -138,7 +138,12 @@ class EmployeeController extends Controller
             'employee_number' => 'required|string|unique:employees,employee_number',
             'phone_number' => 'nullable|string',
             'department_id' => 'nullable|exists:departments,id',
-            'position_id' => ['nullable', Rule::exists('positions', 'id')->where('department_id', $request->input('department_id'))],
+            'position_id' => [
+                'nullable',
+                Rule::exists('positions', 'id')
+                    ->where('department_id', $request->input('department_id'))
+                    ->where('is_active', true),
+            ],
             'supervisor_id' => 'nullable|exists:employees,id',
             'join_date' => 'nullable|date',
             'employment_status' => 'required|string',
@@ -221,13 +226,21 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, Employee $employee)
     {
+        $positionRule = Rule::exists('positions', 'id')->where('department_id', $request->input('department_id'));
+        $isKeepingHistoricalPosition = $request->filled('position_id')
+            && (int) $request->input('position_id') === (int) $employee->position_id
+            && (int) $request->input('department_id') === (int) $employee->department_id;
+        if (! $isKeepingHistoricalPosition) {
+            $positionRule->where('is_active', true);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$employee->user_id,
             'employee_number' => 'required|string|unique:employees,employee_number,'.$employee->id,
             'phone_number' => 'nullable|string',
             'department_id' => 'nullable|exists:departments,id',
-            'position_id' => ['nullable', Rule::exists('positions', 'id')->where('department_id', $request->input('department_id'))],
+            'position_id' => ['nullable', $positionRule],
             'supervisor_id' => 'nullable|exists:employees,id',
             'join_date' => 'nullable|date',
             'employment_status' => 'required|string',

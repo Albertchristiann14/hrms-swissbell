@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import StatCard from '@/Components/StatCard';
 
 
 export default function ManagerDashboard({ data }: { data: any }) {
@@ -23,77 +24,79 @@ export default function ManagerDashboard({ data }: { data: any }) {
         {
             label: 'Active Projects',
             value: stats.activeProjects,
-            gradient: 'from-indigo-500 to-indigo-600',
+            status: 'info' as const,
             href: route('projects.index', { status: 'Active' }),
             hint: 'View active projects',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         },
         {
             label: 'Active Tasks',
             value: stats.activeTasks,
-            gradient: 'from-blue-500 to-blue-600',
+            status: 'neutral' as const,
             href: route('tasks.index', { filter: 'active' }),
             hint: 'View active tasks',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
         },
         {
             label: 'Completed (Month)',
             value: stats.completedThisMonth,
-            gradient: 'from-emerald-500 to-emerald-600',
+            status: 'success' as const,
             href: route('tasks.index', { filter: 'completed' }),
             hint: 'View tasks completed this month',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         },
         {
             label: 'Overdue Tasks',
             value: stats.overdueTasks,
-            gradient: 'from-red-500 to-rose-600',
+            status: (stats.overdueTasks > 0 ? 'danger' : 'neutral') as 'danger' | 'neutral',
             href: route('tasks.index', { filter: 'overdue' }),
             hint: 'View overdue tasks',
-            icon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
         },
     ];
 
     const statusColor = (status: string) => {
         switch (status) {
             case 'Active': return 'bg-emerald-100 text-emerald-700';
-            case 'Planning': return 'bg-blue-100 text-blue-700';
+            case 'Planning': return 'bg-sky-100 text-sky-700';
             case 'On Hold': return 'bg-amber-100 text-amber-700';
-            case 'Completed': return 'bg-gray-100 text-gray-600';
-            case 'Cancelled': return 'bg-red-100 text-red-600';
-            default: return 'bg-gray-100 text-gray-600';
+            case 'Completed': return 'bg-slate-100 text-slate-600';
+            case 'Cancelled': return 'bg-rose-100 text-rose-600';
+            default: return 'bg-slate-100 text-slate-600';
         }
     };
 
     const taskColors: Record<string, string> = {
         'To Do': '#64748b',
-        'In Progress': '#3b82f6',
-        'Review': '#f59e0b',
-        'Done': '#f59e0b',
+        'In Progress': '#0284c7',
+        'Review': '#d97706',
+        'Done': '#059669',
         'Approved': '#10b981',
-        'Cancelled': '#9ca3af',
+        'Cancelled': '#94a3b8',
     };
 
     return (
         <div className="space-y-6">
-
-
             {/* Announcement Banner */}
             {announcements.length > 0 && (
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#E31B23] via-[#c4141b] to-[#991b1b] p-6 text-white shadow-lg">
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvc3ZnPg==')] opacity-40" />
-                    <div className="relative flex items-start gap-4">
-                        <div className="flex-shrink-0 rounded-lg bg-white/10 p-2.5 backdrop-blur-sm">
-                            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                <div className="rounded-xl bg-[#0F172A] border border-slate-800 p-5 text-white shadow-xs">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 rounded-lg bg-[#E31B23]/20 border border-[#E31B23]/30 p-2.5 text-[#f87171]">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                             </svg>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h4 className="font-bold text-lg leading-tight">{announcements[0].title}</h4>
-                            <p className="mt-1 text-sm text-indigo-100 line-clamp-2">{announcements[0].message}</p>
-                            <p className="mt-2 text-xs text-indigo-200">
-                                {announcements[0].creator?.name} · {new Date(announcements[0].published_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider bg-white/10 text-slate-200 px-2 py-0.5 rounded">
+                                    Announcement
+                                </span>
+                                <span className="text-xs text-slate-400">
+                                    {announcements[0].creator?.name} · {new Date(announcements[0].published_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                            </div>
+                            <h4 className="font-semibold text-base text-white leading-snug">{announcements[0].title}</h4>
+                            <p className="mt-1 text-xs sm:text-sm text-slate-300 line-clamp-2">{announcements[0].message}</p>
                         </div>
                     </div>
                 </div>
@@ -102,24 +105,15 @@ export default function ManagerDashboard({ data }: { data: any }) {
             {/* Executive Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {statItems.map((stat, idx) => (
-                    <Link
+                    <StatCard
                         key={idx}
+                        label={stat.label}
+                        value={stat.value}
+                        status={stat.status}
                         href={stat.href}
-                        className="group relative overflow-hidden rounded-xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all duration-200 hover:-translate-y-1 block cursor-pointer"
-                        title={stat.hint}
-                    >
-                        <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl ${stat.gradient} opacity-5 rounded-bl-full group-hover:opacity-15 transition-opacity`} />
-                        <div className="flex items-center justify-between mb-3">
-                            <div className={`inline-flex rounded-lg bg-gradient-to-br ${stat.gradient} p-2 text-white shadow-sm`}>
-                                {stat.icon}
-                            </div>
-                            <span className="text-xs font-semibold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                                Open →
-                            </span>
-                        </div>
-                        <div className="text-3xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">{stat.value}</div>
-                        <div className="text-xs font-medium text-gray-500 mt-0.5">{stat.label}</div>
-                    </Link>
+                        actionLabel={stat.hint}
+                        icon={stat.icon}
+                    />
                 ))}
             </div>
 

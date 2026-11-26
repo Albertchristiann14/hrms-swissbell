@@ -50,20 +50,24 @@ export default function EmployeeDashboard({ data }: { data: any }) {
         <div className="space-y-6">
             {/* Announcement Banner */}
             {announcements.length > 0 && (
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#E31B23] via-[#c4141b] to-[#991b1b] p-6 text-white shadow-lg hover:shadow-red-500/20 transition-all duration-300">
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvc3ZnPg==')] opacity-40" />
-                    <div className="relative flex items-start gap-4">
-                        <div className="flex-shrink-0 rounded-lg bg-white/10 p-2.5 backdrop-blur-sm">
-                            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                <div className="rounded-xl bg-[#0F172A] border border-slate-800 p-5 text-white shadow-xs">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 rounded-lg bg-[#E31B23]/20 border border-[#E31B23]/30 p-2.5 text-[#f87171]">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                             </svg>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h4 className="font-bold text-lg leading-tight">{announcements[0].title}</h4>
-                            <p className="mt-1 text-sm text-indigo-100 line-clamp-2">{announcements[0].message}</p>
-                            <p className="mt-2 text-xs text-indigo-200">
-                                {announcements[0].creator?.name} · {new Date(announcements[0].published_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider bg-white/10 text-slate-200 px-2 py-0.5 rounded">
+                                    Announcement
+                                </span>
+                                <span className="text-xs text-slate-400">
+                                    {announcements[0].creator?.name} · {new Date(announcements[0].published_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                            </div>
+                            <h4 className="font-semibold text-base text-white leading-snug">{announcements[0].title}</h4>
+                            <p className="mt-1 text-xs sm:text-sm text-slate-300 line-clamp-2">{announcements[0].message}</p>
                         </div>
                     </div>
                 </div>
@@ -72,43 +76,43 @@ export default function EmployeeDashboard({ data }: { data: any }) {
             {/* Quick Actions & Leave Status Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Quick Actions */}
-                <div className="lg:col-span-2 bg-white/90 backdrop-blur-xl rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100/80 p-6">
-                    <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-5">
-                        <svg className="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-2xs border border-slate-200 p-5">
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                        <svg className="w-4 h-4 text-[#E31B23]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         Quick Actions
                     </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <Link href={route('leave.index')} className="flex flex-col items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors group">
-                            <div className="p-3 bg-white rounded-full shadow-sm text-indigo-600 group-hover:scale-110 transition-transform">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <Link href={route('leave.index')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-red-50/60 border border-slate-200/70 hover:border-red-200 rounded-xl transition-colors group">
+                            <div className="p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs text-[#E31B23]">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
-                            <span className="mt-3 text-sm font-medium text-indigo-900">Leave Request</span>
+                            <span className="mt-2.5 text-xs font-semibold text-slate-800 group-hover:text-[#E31B23]">Leave Request</span>
                         </Link>
-                        <Link href={route('overtime.index')} className="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors group">
-                            <div className="p-3 bg-white rounded-full shadow-sm text-blue-600 group-hover:scale-110 transition-transform">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <Link href={route('overtime.index')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-sky-50/60 border border-slate-200/70 hover:border-sky-200 rounded-xl transition-colors group">
+                            <div className="p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs text-sky-600">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            <span className="mt-3 text-sm font-medium text-blue-900">Overtime</span>
+                            <span className="mt-2.5 text-xs font-semibold text-slate-800 group-hover:text-sky-700">Overtime</span>
                         </Link>
-                        <Link href={route('payroll.my')} className="flex flex-col items-center justify-center p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors group">
-                            <div className="p-3 bg-white rounded-full shadow-sm text-emerald-600 group-hover:scale-110 transition-transform">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        <Link href={route('payroll.my')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-emerald-50/60 border border-slate-200/70 hover:border-emerald-200 rounded-xl transition-colors group">
+                            <div className="p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs text-emerald-600">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <span className="mt-3 text-sm font-medium text-emerald-900">My Payslips</span>
+                            <span className="mt-2.5 text-xs font-semibold text-slate-800 group-hover:text-emerald-700">My Payslips</span>
                         </Link>
-                        <Link href={route('tasks.index')} className="flex flex-col items-center justify-center p-4 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors group">
-                            <div className="p-3 bg-white rounded-full shadow-sm text-amber-600 group-hover:scale-110 transition-transform">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        <Link href={route('tasks.index')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-amber-50/60 border border-slate-200/70 hover:border-amber-200 rounded-xl transition-colors group">
+                            <div className="p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs text-amber-600">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                             </div>
-                            <span className="mt-3 text-sm font-medium text-amber-900">List Task</span>
+                            <span className="mt-2.5 text-xs font-semibold text-slate-800 group-hover:text-amber-700">List Task</span>
                         </Link>
                     </div>
                 </div>
 
                 {/* Leave Status */}
-                <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100/80 p-6">
-                    <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-5">
-                        <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <div className="bg-white rounded-xl shadow-2xs border border-slate-200 p-5">
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                        <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         Leave Status
                     </h3>
                     <div className="grid grid-cols-2 gap-4">

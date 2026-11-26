@@ -9,7 +9,17 @@ class Position extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'department_id'];
+    protected $fillable = [
+        'department_id',
+        'name',
+        'code',
+        'description',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function department()
     {
@@ -21,9 +31,16 @@ class Position extends Model
         return $this->hasMany(Employee::class);
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
     public static function getCachedList()
     {
-        return static::select('id', 'name', 'department_id')->orderBy('name')->get();
+        return static::select('id', 'name', 'code', 'department_id', 'is_active')
+            ->orderBy('name')
+            ->get();
     }
 
     public static function clearCache(): void

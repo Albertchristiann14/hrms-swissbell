@@ -69,33 +69,34 @@ export default function EmployeeHRDashboard({ data }: EmployeeHRDashboardProps) 
         <div className="space-y-6">
             {/* Announcements Banner */}
             {announcements.length > 0 && (
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#E31B23] via-[#c4141b] to-[#991b1b] p-5 sm:p-6 text-white shadow-lg">
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvc3ZnPg==')] opacity-40" />
-                    <div className="relative flex items-start gap-4">
-                        <div className="flex-shrink-0 rounded-xl bg-white/10 p-2.5 backdrop-blur-sm">
-                            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                <div className="rounded-xl bg-[#0F172A] border border-slate-800 p-5 text-white shadow-xs">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 rounded-lg bg-[#E31B23]/20 border border-[#E31B23]/30 p-2.5 text-[#f87171]">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                             </svg>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded">
-                                Company Notice
-                            </span>
-                            <h4 className="font-bold text-base sm:text-lg leading-tight mt-1">{announcements[0].title}</h4>
-                            <p className="mt-1 text-xs sm:text-sm text-red-100 line-clamp-2">{announcements[0].message || announcements[0].content}</p>
-                            <p className="mt-2 text-[11px] text-red-200">
-                                {announcements[0].creator?.name} · {new Date(announcements[0].published_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider bg-white/10 text-slate-200 px-2 py-0.5 rounded">
+                                    Company Notice
+                                </span>
+                                <span className="text-xs text-slate-400">
+                                    {announcements[0].creator?.name} · {new Date(announcements[0].published_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                            </div>
+                            <h4 className="font-semibold text-base text-white leading-snug">{announcements[0].title}</h4>
+                            <p className="mt-1 text-xs sm:text-sm text-slate-300 line-clamp-2">{announcements[0].message || announcements[0].content}</p>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Profile & Employee Header Card */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
+            <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-2xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-700 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-red-500/20 shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-[#0F172A] flex items-center justify-center text-white text-lg font-bold shrink-0">
                             {user.name ? user.name.charAt(0).toUpperCase() : 'E'}
                         </div>
                         <div className="min-w-0">
