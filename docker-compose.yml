@@ -1,0 +1,125 @@
+services:
+  # ============================================================================
+  # APP: Laravel PHP-FPM 8.3 Core Application
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sipu_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - AUTO_MIGRATE=true
+      - AUTO_OPTIMIZE=true
+    env_file:
+      - .env
+    volumes:
+      - app_storage:/var/www/html/storage
+      - app_database:/var/www/html/database
+      - app_bootstrap_cache:/var/www/html/bootstrap/cache
+    networks:
+      - sipu_network
+
+  # ============================================================================
+  # WEB: Nginx High-Performance Web Server & Static Asset Proxy
+  # ============================================================================
+  web:
+    image: nginx:alpine
+    container_name: sipu_web
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - app_storage:/var/www/html/storage:ro
+    depends_on:
+      - app
+    networks:
+      - sipu_network
+
+  # ============================================================================
+  # QUEUE: Laravel Background Queue Worker (Notifications, Emails, Syncs)
+  # ============================================================================
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sipu_queue
+    restart: unless-stopped
+    command: php artisan queue:work --verbose --tries=3 --timeout=90 --sleep=3
+    environment:
+      - AUTO_MIGRATE=false
+      - AUTO_OPTIMIZE=false
+    env_file:
+      - .env
+    volumes:
+      - app_storage:/var/www/html/storage
+      - app_database:/var/www/html/database
+      - app_bootstrap_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - app
+    networks:
+      - sipu_network
+
+  # ============================================================================
+  # SCHEDULER: Laravel Console Cron / Task Scheduler (Reminders, Expirations)
+  # ============================================================================
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sipu_scheduler
+    restart: unless-stopped
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    environment:
+      - AUTO_MIGRATE=false
+      - AUTO_OPTIMIZE=false
+    env_file:
+      - .env
+    volumes:
+      - app_storage:/var/www/html/storage
+      - app_database:/var/www/html/database
+      - app_bootstrap_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - app
+    networks:
+      - sipu_network
+
+  # ============================================================================
+  # OPTIONAL: MySQL Database Container (Activated via --profile mysql)
+  # ============================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: sipu_mysql
+    restart: unless-stopped
+    profiles:
+      - mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-sipu_db}
+      MYSQL_USER: ${DB_USERNAME:-sipu_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - sipu_network
+
+volumes:
+  app_storage:
+    name: sipu_storage
+  app_database:
+    name: sipu_database
+  app_bootstrap_cache:
+    name: sipu_bootstrap_cache
+  mysql_data:
+    name: sipu_mysql_data
+
+networks:
+  sipu_network:
+    name: sipu_network
+    driver: bridge
