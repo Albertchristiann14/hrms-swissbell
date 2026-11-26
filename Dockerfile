@@ -3,7 +3,7 @@
 # ==============================================================================
 # STAGE 1: Build Frontend Assets (Vite + React + TypeScript + Tailwind)
 # ==============================================================================
-FROM node:20-alpine AS assets
+FROM node:22-alpine AS assets
 
 WORKDIR /app
 
